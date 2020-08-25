@@ -34,9 +34,9 @@ export default class MainScene extends Phaser.Scene {
     super('MainScene')
   }
 
-  preload() {
-    this.load.image('user', 'public/red.png')
-  }
+  // preload() {
+  //   this.load.image('user', 'public/red.png')
+  // }
 
   create() {
     this.scene.launch('BgScene')
@@ -67,27 +67,27 @@ export default class MainScene extends Phaser.Scene {
     // this.cursors = this.input.keyboard.createCursorKeys()
   }
 
-  update() {
-    if (this.user) {
-      if (this.cursors.left.isDown) {
-        this.user.setAngularVelocity(-150)
-      } else if (this.cursors.right.isDown) {
-        this.user.setAngularVelocity(150)
-      } else {
-        this.user.setAngularVelocity(0)
-      }
+  // update() {
+  //   if (this.user) {
+  //     if (this.cursors.left.isDown) {
+  //       this.user.setAngularVelocity(-150)
+  //     } else if (this.cursors.right.isDown) {
+  //       this.user.setAngularVelocity(150)
+  //     } else {
+  //       this.user.setAngularVelocity(0)
+  //     }
 
-      if (this.cursors.up.isDown) {
-        this.physics.velocityFromRotation(
-          this.user.rotation + 1.5,
-          100,
-          this.user.body.acceleration
-        )
-      } else {
-        this.user.setAcceleration(0)
-      }
+  //     if (this.cursors.up.isDown) {
+  //       this.physics.velocityFromRotation(
+  //         this.user.rotation + 1.5,
+  //         100,
+  //         this.user.body.acceleration
+  //       )
+  //     } else {
+  //       this.user.setAcceleration(0)
+  //     }
 
-      this.physics.world.wrap(this.user, 5)
-    }
-  }
+  //     this.physics.world.wrap(this.user, 5)
+  //   }
+  // }
 }

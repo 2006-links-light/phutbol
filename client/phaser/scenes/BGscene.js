@@ -8,7 +8,7 @@ export default class BgScene extends Phaser.Scene {
   preload() {
     // Preload Sprites
     this.load.image('pitch', '/football-pitch.png')
-    this.load.image('user', 'public/red.png')
+    // this.load.image('user', 'public/red.png')
     // << LOAD SPRITE HERE >>
   }
 
