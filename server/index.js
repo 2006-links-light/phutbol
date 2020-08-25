@@ -1,124 +1,52 @@
-const path = require('path')
-const express = require('express')
-const morgan = require('morgan')
-const compression = require('compression')
-const session = require('express-session')
-const passport = require('passport')
-const SequelizeStore = require('connect-session-sequelize')(session.Store)
-const db = require('./db')
-const sessionStore = new SequelizeStore({db})
-const PORT = process.env.PORT || 8080
-const app = express()
-const socketio = require('socket.io')
-module.exports = app
+let express = require('express')
+let path = require('path')
+let app = express()
+let server = require('http').Server(app)
+let io = require('socket.io').listen(server)
 
-// This is a global Mocha hook, used for resource cleanup.
-// Otherwise, Mocha v4+ never quits after tests.
-if (process.env.NODE_ENV === 'test') {
-  after('close the session store', () => sessionStore.stopExpiringSessions())
-}
+let players = {}
 
-/**
- * In your development environment, you can keep all of your
- * app's secret API keys in a file called `secrets.js`, in your project
- * root. This file is included in the .gitignore - it will NOT be tracked
- * or show up on Github. On your production server, you can add these
- * keys as environment variables, so that they can still be read by the
- * Node process on process.env
- */
-if (process.env.NODE_ENV !== 'production') require('../secrets')
+app.use(express.static(path.join(__dirname, '../public')))
 
-// passport registration
-passport.serializeUser((user, done) => done(null, user.id))
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await db.models.user.findByPk(id)
-    done(null, user)
-  } catch (err) {
-    done(err)
-  }
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, '../public/index.html'))
 })
 
-const createApp = () => {
-  // logging middleware
-  app.use(morgan('dev'))
+io.on('connection', function(socket) {
+  console.log('a user connected')
 
-  // body parsing middleware
-  app.use(express.json())
-  app.use(express.urlencoded({extended: true}))
+  // create a new player and add it to our players object
+  players[socket.id] = {
+    x: Math.floor(Math.random() * 700) + 50,
+    y: Math.floor(Math.random() * 500) + 50,
+    playerId: socket.id,
+    team: Math.floor(Math.random() * 2) == 0 ? 'red' : 'blue'
+  }
 
-  // compression middleware
-  app.use(compression())
+  // send the players object to the new player
+  socket.emit('currentPlayers', players)
+  // update all other players of the new player
+  socket.broadcast.emit('newPlayer', players[socket.id])
 
-  // session middleware with passport
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET || 'my best friend is Cody',
-      store: sessionStore,
-      resave: false,
-      saveUninitialized: false
-    })
-  )
-  app.use(passport.initialize())
-  app.use(passport.session())
+  socket.on('disconnect', function() {
+    console.log('user disconnected')
 
-  // auth and api routes
-  app.use('/auth', require('./auth'))
-  app.use('/api', require('./api'))
-
-  // static file-serving middleware
-  app.use(express.static(path.join(__dirname, '..', 'public')))
-
-  // any remaining requests with an extension (.js, .css, etc.) send 404
-  // app.use((req, res, next) => {
-  //   if (path.extname(req.path).length) {
-  //     const err = new Error('Not found')
-  //     err.status = 404
-  //     next(err)
-  //   } else {
-  //     next()
-  //   }
-  // })
-
-  // sends index.html
-  app.use('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public/index.html'))
+    // remove this player from our players object
+    delete players[socket.id]
+    // emit a message to all players to remove this player
+    io.emit('disconnect', socket.id)
   })
 
-  // error handling endware
-  app.use((err, req, res, next) => {
-    console.error(err)
-    console.error(err.stack)
-    res.status(err.status || 500).send(err.message || 'Internal server error.')
+  // when a player moves, update the player data
+  socket.on('playerMovement', function(movementData) {
+    players[socket.id].x = movementData.x
+    players[socket.id].y = movementData.y
+    players[socket.id].rotation = movementData.rotation
+    // emit a message to all players about the player that moved
+    socket.broadcast.emit('playerMoved', players[socket.id])
   })
-}
+})
 
-const startListening = () => {
-  // start listening (and create a 'server' object representing our server)
-  const server = app.listen(PORT, () =>
-    console.log(`GOALLLLLLLLLLLLLLLL on ${PORT}`)
-  )
-
-  // set up our socket control center
-  const io = socketio(server)
-  require('./socket')(io)
-}
-
-const syncDb = () => db.sync()
-
-async function bootApp() {
-  await sessionStore.sync()
-  await syncDb()
-  await createApp()
-  await startListening()
-}
-// This evaluates as true when this file is run directly from the command line,
-// i.e. when we say 'node server/index.js' (or 'nodemon server/index.js', or 'nodemon server', etc)
-// It will evaluate false when this module is required by another module - for example,
-// if we wanted to require our app in a test spec
-if (require.main === module) {
-  bootApp()
-} else {
-  createApp()
-}
+server.listen(8081, function() {
+  console.log(`Listening on ${server.address().port}`)
+})
