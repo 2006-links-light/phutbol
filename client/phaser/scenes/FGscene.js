@@ -40,6 +40,34 @@ export default class FgScene extends Phaser.Scene {
     // this.addOtherPlayers = this.addOtherPlayers.bind(this)
   }
 
+  initializeSockets() {
+    let self = this
+    console.log(this)
+    this.otherPlayers = this.physics.add.group()
+
+    socket.on('currentPlayers', function(players) {
+      console.log('Getting current players', players)
+      Object.keys(players).forEach(function(id) {
+        if (players[id].playerId === self.socket.id) {
+          addPlayer(self, players[id])
+        } else {
+          addOtherPlayers(self, players[id])
+        }
+      })
+    })
+
+    socket.on('newPlayer', function(playerInfo) {
+      addOtherPlayers(self, playerInfo)
+    })
+
+    socket.on('disconnect', function(playerId) {
+      self.otherPlayers.getChildren().forEach(function(otherPlayer) {
+        if (playerId === otherPlayer.playerId) {
+          otherPlayer.destroy()
+        }
+      })
+    })
+  }
   // addPlayer(self, playerInfo) {
   //   self.user = self.physics.add
   //     .image(playerInfo.x, playerInfo.y, 'user')
@@ -102,6 +130,7 @@ export default class FgScene extends Phaser.Scene {
   create() {
     this.otherPlayers = this.physics.add.group()
     // Create game entities
+    this.initializeSockets()
     this.createPlayers()
     // << CREATE GAME ENTITIES HERE >>
     // this.player = new Player(this, 50, 325, 'user').setScale(0.25)
@@ -132,31 +161,7 @@ export default class FgScene extends Phaser.Scene {
   }
 
   createPlayers() {
-    let self = this
-
-    this.otherPlayers = this.physics.add.group()
-
-    socket.on('currentPlayers', function(players) {
-      Object.keys(players).forEach(function(id) {
-        if (players[id].playerId === self.socket.id) {
-          addPlayer(self, players[id])
-        } else {
-          addOtherPlayers(self, players[id])
-        }
-      })
-    })
-
-    socket.on('newPlayer', function(playerInfo) {
-      addOtherPlayers(self, playerInfo)
-    })
-
-    socket.on('disconnect', function(playerId) {
-      self.otherPlayers.getChildren().forEach(function(otherPlayer) {
-        if (playerId === otherPlayer.playerId) {
-          otherPlayer.destroy()
-        }
-      })
-    })
+    socket.emit('getPlayers')
   }
 
   // createAnimations() {
