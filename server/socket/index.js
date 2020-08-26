@@ -14,7 +14,10 @@ module.exports = io => {
     }
 
     // send the players object to the new player
-    socket.emit('currentPlayers', players)
+    socket.on('getPlayers', () => {
+      socket.emit('currentPlayers', players)
+      console.log('sending players back!', players)
+    })
     // update all other players of the new player
     socket.broadcast.emit('newPlayer', players[socket.id])
 
