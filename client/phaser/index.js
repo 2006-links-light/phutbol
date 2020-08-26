@@ -3,6 +3,9 @@ import Phaser from 'phaser'
 import MainScene from './scenes/MainScene'
 import BgScene from './scenes/BgScene'
 import FgScene from './scenes/FgScene'
+import StartScene from './scenes/StartScene'
+import LobbyScene from './scenes/LobbyScene'
+
 import config from './config/config'
 /* The above loads the phaser.d.ts file so that VSCode has autocomplete for the Phaser API.
 If you experience problems with autocomplete, try opening the phaser.d.ts file and scrolling up and down in it.
@@ -27,8 +30,11 @@ class Game extends Phaser.Game {
     this.scene.add('BgScene', BgScene)
     this.scene.add('FgScene', FgScene)
     this.scene.add('MainScene', MainScene)
+    this.scene.add('StartScene', StartScene)
+    this.scene.add('LobbyScene', LobbyScene)
+
     // Start the game with the mainscene
-    this.scene.start('MainScene')
+    this.scene.start('StartScene', StartScene)
     // << START GAME WITH MAIN SCENE HERE >>
   }
 }
