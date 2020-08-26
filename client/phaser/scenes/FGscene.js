@@ -7,15 +7,15 @@ function addPlayer(self, playerInfo) {
   self.user = self.physics.add
     .image(playerInfo.x, playerInfo.y, 'user')
     .setOrigin(0.5, 0.5)
-    .setDisplaySize(53, 40)
+    .setDisplaySize(40, 40)
 
   //self.usercollider(this.player, this.ball)
 
-  if (playerInfo.team === 'blue') {
-    self.user.setTint(0x0000ff)
-  } else {
-    self.user.setTint(0xff0000)
-  }
+  // if (playerInfo.team === 'blue') {
+  //   self.user.setTint(0x0000ff)
+  // } else {
+  //   self.user.setTint(0xff0000)
+  // }
 
   // self.user.setDrag(100)
   // self.user.setAngularDrag(100)
@@ -26,13 +26,7 @@ function addOtherPlayers(self, playerInfo) {
   const otherPlayer = self.add
     .sprite(playerInfo.x, playerInfo.y, 'opponent')
     .setOrigin(0.5, 0.5)
-    .setDisplaySize(53, 40)
-
-  if (playerInfo.team === 'blue') {
-    otherPlayer.setTint(0x0000ff)
-  } else {
-    otherPlayer.setTint(0xff0000)
-  }
+    .setDisplaySize(40, 40)
 
   otherPlayer.playerId = playerInfo.playerId
   self.otherPlayers.add(otherPlayer)
@@ -82,6 +76,7 @@ export default class FgScene extends Phaser.Scene {
   // }
 
   preload() {
+    this.socket = socket
     // Preload Sprites
     // << LOAD SPRITES HERE >>
     // this.load.image("ground", "./assets/ground.png");
@@ -105,7 +100,9 @@ export default class FgScene extends Phaser.Scene {
   }
 
   create() {
+    this.otherPlayers = this.physics.add.group()
     // Create game entities
+    this.createPlayers()
     // << CREATE GAME ENTITIES HERE >>
     // this.player = new Player(this, 50, 325, 'user').setScale(0.25)
     this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
@@ -129,41 +126,17 @@ export default class FgScene extends Phaser.Scene {
     // << CREATE COLLISIONS HERE >>
 
     // var self = this
-    // this.socket = io()
     // this.otherPlayers = this.physics.add.group()
-
-    // this.socket.on('currentPlayers', function(players) {
-    //   Object.keys(players).forEach(function(id) {
-    //     if (players[id].playerId === self.socket.id) {
-    //       addPlayer(self, players[id])
-    //     } else {
-    //       console.log(this)
-    //       addOtherPlayers(self, players[id])
-    //     }
-    //   })
-    // })
-
-    // this.socket.on('newPlayer', function(playerInfo) {
-    //   addOtherPlayers(self, playerInfo)
-    // })
-
-    // this.socket.on('disconnect', function(playerId) {
-    //   self.otherPlayers.getChildren().forEach(function(otherPlayer) {
-    //     if (playerId === otherPlayer.playerId) {
-    //       otherPlayer.destroy()
-    //     }
-    //   })
-    // })
 
     this.cursors = this.input.keyboard.createCursorKeys()
   }
 
   createPlayers() {
-    var self = this
-    this.socket = io()
+    let self = this
+
     this.otherPlayers = this.physics.add.group()
 
-    this.socket.on('currentPlayers', function(players) {
+    socket.on('currentPlayers', function(players) {
       Object.keys(players).forEach(function(id) {
         if (players[id].playerId === self.socket.id) {
           addPlayer(self, players[id])
@@ -173,11 +146,11 @@ export default class FgScene extends Phaser.Scene {
       })
     })
 
-    this.socket.on('newPlayer', function(playerInfo) {
+    socket.on('newPlayer', function(playerInfo) {
       addOtherPlayers(self, playerInfo)
     })
 
-    this.socket.on('disconnect', function(playerId) {
+    socket.on('disconnect', function(playerId) {
       self.otherPlayers.getChildren().forEach(function(otherPlayer) {
         if (playerId === otherPlayer.playerId) {
           otherPlayer.destroy()
