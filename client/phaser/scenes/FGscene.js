@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import Player from '../entity/player.js'
 import Ball from '../entity/ball.js'
-import io from 'socket.io-client'
+import socket from '../../sockets'
 
 function addPlayer(self, playerInfo) {
   self.user = self.physics.add

@@ -1,5 +1,4 @@
 import Phaser from 'phaser'
-import io from 'socket.io-client'
 
 // function addPlayer(self, playerInfo) {
 //   self.user = self.physics.add
