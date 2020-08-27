@@ -7,8 +7,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.add.existing(this)
     this.scene.physics.world.enable(this)
     this.facingLeft = false
-
-    // << INITIALIZE PLAYER ATTRIBUTES HERE >>
   }
 
   updateMovement(cursors) {
@@ -30,40 +28,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  // updateJump(cursors) {
-  //   if (cursors.up.isDown ) {
-  //     this.setVelocityY(-360);
-  //   } else {
-  //     this.setVelocityX(0);
-  //     this.play('idleUnarmed');
-
-  //   }
-  // }
-
-  // updateDown(cursors) {
-  //   if (cursors.down.isDown ) {
-  //     this.setVelocityY(360);
-  //   } else {
-  //     this.setVelocityX(0);
-  //     this.play('idleUnarmed');
-
-  //   }
-  // }
-
-  // updateInAir() {
-  //   if (!this.body.touching.down) {
-  //     this.play('jump');
-  //   }
-  // }
-
   // Check which controller button is being pushed and execute movement & animation
   update(cursors) {
-    // << INSERT CODE HERE >>
     this.updateMovement(cursors)
-    // console.log("x axis " + this.player.x);
-    // console.log("y axis " + this.player.y);
-    // this.updateJump(cursors)
-    // this.updateInAir();
-    // this.updateDown(cursors)
   }
 }

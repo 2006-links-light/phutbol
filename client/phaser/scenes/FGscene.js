@@ -10,11 +10,6 @@ function addPlayer(self, playerInfo) {
 }
 
 function addOtherPlayers(self, playerInfo) {
-  // const otherPlayer = self.add
-  //   .sprite(playerInfo.x, playerInfo.y, 'opponent')
-  //   .setOrigin(0.5, 0.5)
-  //   .setDisplaySize(40, 40)
-
   const otherPlayer = new Player(self, 50, 325, 'opponent').setScale(0.25)
 
   otherPlayer.playerId = playerInfo.playerId
@@ -26,13 +21,10 @@ export default class FgScene extends Phaser.Scene {
   }
 
   initializeSockets() {
-    console.log('CHANGED')
     let self = this
-    console.log(this)
     this.otherPlayers = this.physics.add.group()
 
     socket.on('currentPlayers', function(players) {
-      console.log('Getting current players', players)
       Object.keys(players).forEach(function(id) {
         if (players[id].playerId === self.socket.id) {
           addPlayer(self, players[id])
@@ -86,13 +78,9 @@ export default class FgScene extends Phaser.Scene {
 
   create() {
     this.otherPlayers = this.physics.add.group()
-    // Create game entities
     this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
     this.initializeSockets()
     this.createPlayers()
-    // << CREATE GAME ENTITIES HERE >>
-    // this.player = new Player(this, 50, 325, 'user').setScale(0.25)
-    // this.player2 = new Player2(this, 750, 325, 'jeff').setScale(0.25)
 
     // this.physics.add.collider(this.user, this.ball)
     // this.physics.add.collider(this.otherPlayers, this.ball)
@@ -104,54 +92,18 @@ export default class FgScene extends Phaser.Scene {
     this.ball.setCollideWorldBounds(true)
     //this.user.setCollideWorldBounds(true)
     //this.otherPlayers.setCollideWorldBounds(true)
-
-    // Create sounds
-    // << CREATE SOUNDS HERE >>
-
-    // Create collisions for all entities
-    // << CREATE COLLISIONS HERE >>
-
-    // var self = this
-    // this.otherPlayers = this.physics.add.group()
   }
 
   createPlayers() {
     socket.emit('getPlayers')
   }
 
-  // createAnimations() {
-  //   this.anims.create({
-  //     key: 'run',
-  //     frames: this.anims.generateFrameNumbers('user', { start: 17, end: 20 }),
-  //     frameRate: 10,
-  //     repeat: -1
-  //   })
-  //   this.anims.create({
-  //     key: 'jump',
-  //     frames: [{ key: 'user', frame: 17 }],
-  //     frameRate: 20
-  //   })
-  //   this.anims.create({
-  //     key: 'idleUnarmed',
-  //     frames: [{ key: 'user', frame: 11 }],
-  //     frameRate: 10
-  //   })
-  //   this.anims.create({
-  //     key: 'idleArmed',
-  //     frames: [{ key: 'user', frame: 6 }],
-  //     frameRate: 10
-  //   })
-  // }
-
   // time: total time elapsed (ms)
   // delta: time elapsed (ms) since last update() call. 16.666 ms @ 60fps
   update(time, delta) {
-    // << DO UPDATE LOGIC HERE >>
     if (this.user) {
       this.user.update(this.cursors)
-    }
 
-    if (this.user) {
       // emit player movement
       let x = this.user.x
       let y = this.user.y
