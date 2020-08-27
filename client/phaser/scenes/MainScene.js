@@ -33,6 +33,12 @@ export default class MainScene extends Phaser.Scene {
     super('MainScene')
   }
 
+  init(data) {
+    this.names = data.names
+    this.room = data.room
+    console.log(this.names, this.room)
+  }
+
   // preload() {
   //   this.load.image('user', 'public/red.png')
   // }

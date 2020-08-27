@@ -8,6 +8,10 @@ export default {
   render: {
     pixelArt: true
   },
+  parent: 'phutbol',
+  dom: {
+    createContainer: true
+  },
   physics: {
     default: 'arcade',
     arcade: {
