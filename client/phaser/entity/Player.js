@@ -27,7 +27,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     } else {
       this.setVelocityX(0)
       this.setVelocityY(0)
-      this.play('idleUnarmed')
     }
   }
 
