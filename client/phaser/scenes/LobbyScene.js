@@ -1,4 +1,5 @@
 import 'phaser'
+import React from '../config/jsx-dom-shim'
 
 export default class LobbyScene extends Phaser.Scene {
   constructor() {
@@ -24,10 +25,25 @@ export default class LobbyScene extends Phaser.Scene {
         <div>Players:</div>
         <ul>
           {this.names.map(name => {
-            return <li>{name}</li>
+            return <li key={this.names.indexOf(name)}>{name}</li>
           })}
         </ul>
+        <input
+          type="button"
+          name="startButton"
+          value="Start Game"
+          style="font-size: 32px"
+        />
       </div>
     )
+    element.addListener('click').on('click', event => {
+      //  event.preventDefault()
+      if (event.target.name === 'startButton') {
+        this.scene.start('MainScene', {
+          room: this.room,
+          names: this.names
+        })
+      }
+    })
   }
 }
