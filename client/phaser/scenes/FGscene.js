@@ -147,7 +147,9 @@ export default class FgScene extends Phaser.Scene {
   // delta: time elapsed (ms) since last update() call. 16.666 ms @ 60fps
   update(time, delta) {
     // << DO UPDATE LOGIC HERE >>
-    this.user.update(this.cursors)
+    if (this.user) {
+      this.user.update(this.cursors)
+    }
 
     if (this.user) {
       // emit player movement
