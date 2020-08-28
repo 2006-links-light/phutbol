@@ -8,6 +8,8 @@ function addPlayer(self, playerInfo) {
   self.user.setDrag(100)
   self.user.setAngularDrag(100)
   self.user.setCollideWorldBounds(true)
+  self.physics.add.collider(self.user, self.ball)
+  self.physics.add.collider(self.user, self.otherPlayers)
   self.user.playerId = playerInfo.playerId
 }
 
@@ -16,6 +18,9 @@ function addOtherPlayers(self, playerInfo) {
 
   otherPlayer.playerId = playerInfo.playerId
   self.otherPlayers.add(otherPlayer)
+  // self.physics.add.collider(self.otherPlayers, self.user)
+  // self.physics.add.collider(self.user, self.otherPlayers)
+  // self.otherPlayers.setCollideWorldBounds(true)
 }
 export default class FgScene extends Phaser.Scene {
   constructor() {
@@ -28,6 +33,7 @@ export default class FgScene extends Phaser.Scene {
 
     socket.on('currentPlayers', function(players) {
       Object.keys(players).forEach(function(id) {
+        console.log('these are the players: ', players)
         if (players[id].playerId === self.socket.id) {
           addPlayer(self, players[id])
         } else {
@@ -58,6 +64,7 @@ export default class FgScene extends Phaser.Scene {
   }
   createPlayers() {
     socket.emit('getPlayers')
+    this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
   }
 
   preload() {
@@ -84,19 +91,13 @@ export default class FgScene extends Phaser.Scene {
     this.load.plugin('rexvirtualjoystickplugin', url, true)
   }
 
-  createGround(x, y) {
-    this.groundGroup.create(x, y, 'ground')
-  }
-
   create() {
-    this.otherPlayers = this.physics.add.group()
-    console.log('ZDA LOG MON', this.otherPlayers)
-    this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
     this.initializeSockets()
+    // this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
+    this.otherPlayers = this.physics.add.group()
     this.player = this.createPlayers()
-    this.physics.add.collider(this.otherPlayers, this.ball)
+    console.log('ZDA LOG MON', this.otherPlayers)
     // this.physics.add.collider(this.otherPlayers, this.ball)
-    // this.physics.add.collider(this.user, this.otherPlayers)
     this.cursors = this.input.keyboard.createCursorKeys()
     //this.createAnimations()
     this.ball.setBounce(0.6)
@@ -119,6 +120,7 @@ export default class FgScene extends Phaser.Scene {
 
     this.text = this.add.text(0, 0)
     this.dumpJoyStickState()
+    // this.otherPlayers.setCollideWorldBounds(true)
   }
 
   dumpJoyStickState() {
@@ -135,9 +137,7 @@ export default class FgScene extends Phaser.Scene {
     this.text.setText(s)
   }
 
-  // time: total time elapsed (ms)
-  // delta: time elapsed (ms) since last update() call. 16.666 ms @ 60fps
-  update() {
+  updateJoystick() {
     if (
       this.joyStick.touchCursor.cursorKeys.left.isDown ||
       this.cursors.left.isDown
@@ -166,6 +166,12 @@ export default class FgScene extends Phaser.Scene {
       // this.user.setVelocityX(0)
       // this.user.anims.play("turn");
     }
+  }
+
+  // time: total time elapsed (ms)
+  // delta: time elapsed (ms) since last update() call. 16.666 ms @ 60fps
+  update() {
+    this.updateJoystick()
 
     if (this.user) {
       this.user.update(this.cursors)
