@@ -62,6 +62,10 @@ export default class FgScene extends Phaser.Scene {
 
   preload() {
     this.socket = socket
+    var redScore = 0
+    var blueScore = 0
+    var redScoreText
+    var blueScoreText
     // Preload Sprites
     // << LOAD SPRITES HERE >>
     // this.load.image("ground", "./assets/ground.png");
@@ -89,18 +93,20 @@ export default class FgScene extends Phaser.Scene {
   }
 
   create() {
-    this.otherPlayers = this.physics.add.group()
-    console.log('ZDA LOG MON', this.otherPlayers)
-    this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
     this.initializeSockets()
+
+    this.otherPlayers = this.physics.add.group()
+    this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
+    this.ball.setBounce(0.6)
+    this.ball.setCollideWorldBounds(true)
+
     this.player = this.createPlayers()
-    this.physics.add.collider(this.otherPlayers, this.ball)
+    console.log('this.playerthis.player', this.user)
+    // this.physics.add.collider(self.user, this.ball)
     // this.physics.add.collider(this.otherPlayers, this.ball)
     // this.physics.add.collider(this.user, this.otherPlayers)
     this.cursors = this.input.keyboard.createCursorKeys()
     //this.createAnimations()
-    this.ball.setBounce(0.6)
-    this.ball.setCollideWorldBounds(true)
 
     //JOYSTICK CREATE
     this.joyStick = this.plugins
@@ -119,7 +125,29 @@ export default class FgScene extends Phaser.Scene {
 
     this.text = this.add.text(0, 0)
     this.dumpJoyStickState()
+
+    //SCORE BOARD?
+    this.redScoreText = this.add.text(200, 4, `Red: ${this.redScore}`, {
+      fontSize: '32px',
+      fill: '#f90202'
+    })
+    this.blueScoreText = this.add.text(400, 4, `Blue: ${this.blueScore}`, {
+      fontSize: '32px',
+      fill: '#2f02f9'
+    })
   }
+
+  //scoreGoal function
+  // scoreGoal(ball, goal) {
+  //   ball.disableBody(true, true)
+
+  //   score += 1
+  // if player.team === blue
+  //   blueScoreText.setText('Blue: ' + score)
+
+  // if player.team === red
+  //   redScoretext.setText('Blue: ' + score)
+  // }
 
   dumpJoyStickState() {
     var cursorKeys = this.joyStick.createCursorKeys()
@@ -132,7 +160,7 @@ export default class FgScene extends Phaser.Scene {
     s += '\n'
     s += 'Force: ' + Math.floor(this.joyStick.force * 100) / 100 + '\n'
     s += 'Angle: ' + Math.floor(this.joyStick.angle * 100) / 100 + '\n'
-    this.text.setText(s)
+    // this.text.setText(s)
   }
 
   // time: total time elapsed (ms)
