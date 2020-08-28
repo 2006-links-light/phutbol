@@ -5,7 +5,9 @@ import socket from '../../sockets'
 
 function addPlayer(self, playerInfo) {
   self.user = new Player(self, 50, 325, 'user').setScale(0.25)
-
+  self.user.setDrag(100)
+  self.user.setAngularDrag(100)
+  self.user.setCollideWorldBounds(true)
   self.user.playerId = playerInfo.playerId
 }
 
@@ -54,6 +56,9 @@ export default class FgScene extends Phaser.Scene {
       })
     })
   }
+  createPlayers() {
+    socket.emit('getPlayers')
+  }
 
   preload() {
     this.socket = socket
@@ -70,6 +75,13 @@ export default class FgScene extends Phaser.Scene {
       frameWidth: 340,
       frameHeight: 460
     })
+
+    // JOYSTICK
+    var url
+
+    url =
+      'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexvirtualjoystickplugin.min.js'
+    this.load.plugin('rexvirtualjoystickplugin', url, true)
   }
 
   createGround(x, y) {
@@ -78,33 +90,87 @@ export default class FgScene extends Phaser.Scene {
 
   create() {
     this.otherPlayers = this.physics.add.group()
+    console.log('ZDA LOG MON', this.otherPlayers)
     this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
     this.initializeSockets()
-    this.createPlayers()
-
-    // this.physics.add.collider(this.user, this.ball)
+    this.player = this.createPlayers()
+    this.physics.add.collider(this.otherPlayers, this.ball)
     // this.physics.add.collider(this.otherPlayers, this.ball)
     // this.physics.add.collider(this.user, this.otherPlayers)
-
     this.cursors = this.input.keyboard.createCursorKeys()
     //this.createAnimations()
     this.ball.setBounce(0.6)
     this.ball.setCollideWorldBounds(true)
-    //this.user.setCollideWorldBounds(true)
-    //this.otherPlayers.setCollideWorldBounds(true)
+
+    //JOYSTICK CREATE
+    this.joyStick = this.plugins
+      .get('rexvirtualjoystickplugin')
+      .add(this, {
+        x: 700,
+        y: 500,
+        radius: 50,
+        base: this.add.circle(0, 0, 50, 0x888888),
+        thumb: this.add.circle(0, 0, 25, 0xcccccc),
+        dir: '8dir', // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
+        forceMin: 2,
+        enable: true
+      })
+      .on('update', this.dumpJoyStickState, this)
+
+    this.text = this.add.text(0, 0)
+    this.dumpJoyStickState()
   }
 
-  createPlayers() {
-    socket.emit('getPlayers')
+  dumpJoyStickState() {
+    var cursorKeys = this.joyStick.createCursorKeys()
+    var s = 'Key down: '
+    for (var name in cursorKeys) {
+      if (cursorKeys[name].isDown) {
+        s += name + ' '
+      }
+    }
+    s += '\n'
+    s += 'Force: ' + Math.floor(this.joyStick.force * 100) / 100 + '\n'
+    s += 'Angle: ' + Math.floor(this.joyStick.angle * 100) / 100 + '\n'
+    this.text.setText(s)
   }
 
   // time: total time elapsed (ms)
   // delta: time elapsed (ms) since last update() call. 16.666 ms @ 60fps
-  update(time, delta) {
+  update() {
+    if (
+      this.joyStick.touchCursor.cursorKeys.left.isDown ||
+      this.cursors.left.isDown
+    ) {
+      this.user.setVelocityX(-160)
+      // this.player.anims.play("left", true);
+    } else if (
+      this.joyStick.touchCursor.cursorKeys.right.isDown ||
+      this.cursors.right.isDown
+    ) {
+      this.user.setVelocityX(160)
+      // this.user.anims.play("right", true);
+    } else if (
+      this.joyStick.touchCursor.cursorKeys.up.isDown ||
+      this.cursors.up.isDown
+    ) {
+      this.user.setVelocityY(-160)
+      // this.user.anims.play("right", true);
+    } else if (
+      this.joyStick.touchCursor.cursorKeys.down.isDown ||
+      this.cursors.down.isDown
+    ) {
+      this.user.setVelocityY(160)
+      // this.user.anims.play("left", true);
+    } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
+      // this.user.setVelocityX(0)
+      // this.user.anims.play("turn");
+    }
+
     if (this.user) {
       this.user.update(this.cursors)
 
-      // emit player movement
+      // emit user movement
       let x = this.user.x
       let y = this.user.y
 
@@ -118,14 +184,6 @@ export default class FgScene extends Phaser.Scene {
       this.user.oldPosition = {
         x: this.user.x,
         y: this.user.y
-      }
-
-      if (this.cursors.left.isDown) {
-        this.user.setAngularVelocity(-150)
-      } else if (this.cursors.right.isDown) {
-        this.user.setAngularVelocity(150)
-      } else {
-        this.user.setAngularVelocity(0)
       }
     }
   }
