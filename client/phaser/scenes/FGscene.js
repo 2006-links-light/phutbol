@@ -98,7 +98,7 @@ export default class FgScene extends Phaser.Scene {
     this.initializeSockets()
     console.log('thisthisthisthisthis', this)
     console.log('USER', this.user)
-    this.scene.physics.world.enable(this)
+
     this.otherPlayers = this.physics.add.group()
     this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
     this.ball.setBounce(0.6)
