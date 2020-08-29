@@ -8,6 +8,8 @@ function addPlayer(self, playerInfo) {
   self.user.setDrag(100)
   self.user.setAngularDrag(100)
   self.user.setCollideWorldBounds(true)
+  self.user.setDepth(0)
+
   self.user.playerId = playerInfo.playerId
 }
 
@@ -62,8 +64,8 @@ export default class FgScene extends Phaser.Scene {
 
   preload() {
     this.socket = socket
-    var redScore = 0
-    var blueScore = 0
+    this.data.values.redScore = 0
+    this.data.values.blueScore = 0
     var redScoreText
     var blueScoreText
     // Preload Sprites
@@ -94,15 +96,17 @@ export default class FgScene extends Phaser.Scene {
 
   create() {
     this.initializeSockets()
-
+    console.log('thisthisthisthisthis', this)
+    console.log('USER', this.user)
+    this.scene.physics.world.enable(this)
     this.otherPlayers = this.physics.add.group()
     this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
     this.ball.setBounce(0.6)
+    this.ball.setDepth(0)
     this.ball.setCollideWorldBounds(true)
-
     this.player = this.createPlayers()
-    console.log('this.playerthis.player', this.user)
-    // this.physics.add.collider(self.user, this.ball)
+
+    this.physics.add.collider(this.physics.user, this.ball)
     // this.physics.add.collider(this.otherPlayers, this.ball)
     // this.physics.add.collider(this.user, this.otherPlayers)
     this.cursors = this.input.keyboard.createCursorKeys()
@@ -127,14 +131,24 @@ export default class FgScene extends Phaser.Scene {
     this.dumpJoyStickState()
 
     //SCORE BOARD?
-    this.redScoreText = this.add.text(200, 4, `Red: ${this.redScore}`, {
-      fontSize: '32px',
-      fill: '#f90202'
-    })
-    this.blueScoreText = this.add.text(400, 4, `Blue: ${this.blueScore}`, {
-      fontSize: '32px',
-      fill: '#2f02f9'
-    })
+    this.redScoreText = this.add.text(
+      200,
+      4,
+      `Red: ${this.data.values.redScore}`,
+      {
+        fontSize: '32px',
+        fill: '#f90202'
+      }
+    )
+    this.blueScoreText = this.add.text(
+      400,
+      4,
+      `Blue: ${this.data.values.blueScore}`,
+      {
+        fontSize: '32px',
+        fill: '#2f02f9'
+      }
+    )
   }
 
   //scoreGoal function
