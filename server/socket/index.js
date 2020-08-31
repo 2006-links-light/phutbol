@@ -74,80 +74,45 @@ module.exports = io => {
         // emit a message to all players about the player that moved
         socket.broadcast.emit('ballMoved', rooms[roomName].ball)
       })
-    })
 
-    //STEP TWO: When videoSearchBar component is successfully mounted, the new user can be feed the new data.
-    socket.on('success', roomName => {
-      const newUser = socket.id
-      //STEP THREE: Now emit back the welcome socket.
-      if (socket.room) {
-        io
-          .to(newUser)
-          .emit(
-            'welcome',
-            rooms[roomName].curData,
-            rooms[roomName].playTime ? rooms[roomName].playTime : null
-          )
-      }
-    })
+      socket.on('disconnect', () => {
+        console.log(`Connection ${socket.id} has left the building`)
 
-    socket.on('leaving', (data, roomName, name) => {
-      //update our user array to exclude the socket who just left
-      rooms[roomName].user = rooms[roomName].user.filter(user => user !== name)
-      rooms[roomName].curData = data
+        //if socket left after joining a room, meaning refreshed page
+        if (rooms[socket.room]) {
+          //if socket had a name attached to it
+          if (socket.name) {
+            // remove this player from our players object
+            delete rooms[roomName].players[socket.id]
+            // emit a message to all players to remove this player
+            io.emit('disconnect', socket.id)
 
-      //if there is nothing in the queue, meaning no songs playing set curtime to null
-      if (!data.length) {
-        rooms[roomName].curTime = null
-      }
+            //tell others in the room to update their list
+            io
+              .to(socket.room)
+              .emit('update', null, null, rooms[socket.room].user)
 
-      //Tell others in the room to update their queue and userlist
-      socket
-        .to(roomName)
-        .emit('update', rooms[roomName].curData, null, rooms[roomName].user)
+            if (socket.host) {
+              const newHostIdx = Math.floor(
+                Math.random() * rooms[socket.room].user.length
+              )
+              console.log(socket.room, 'refresh', rooms[socket.room].user)
+              console.log(
+                'refresh',
+                'new host',
+                rooms[socket.room].user[newHostIdx]
+              )
+              io.to(socket.room).emit('new host', newHostIdx)
+            }
 
-      if (!rooms[roomName].user.length) {
-        delete rooms[roomName]
-      }
-      //leave room
-      socket.leave(roomName)
-    })
+            console.log('user disconnected')
 
-    socket.on('disconnect', () => {
-      console.log(`Connection ${socket.id} has left the building`)
-
-      //if socket left after joining a room, meaning refreshed page
-      if (rooms[socket.room]) {
-        //if socket had a name attached to it
-        if (socket.name) {
-          // remove this player from our players object
-          delete rooms[roomName].players[socket.id]
-          // emit a message to all players to remove this player
-          io.emit('disconnect', socket.id)
-
-          //tell others in the room to update their list
-          io.to(socket.room).emit('update', null, null, rooms[socket.room].user)
-
-          if (socket.host) {
-            const newHostIdx = Math.floor(
-              Math.random() * rooms[socket.room].user.length
-            )
-            console.log(socket.room, 'refresh', rooms[socket.room].user)
-            console.log(
-              'refresh',
-              'new host',
-              rooms[socket.room].user[newHostIdx]
-            )
-            io.to(socket.room).emit('new host', newHostIdx)
-          }
-
-          console.log('user disconnected')
-
-          if (!rooms[socket.room].user.length) {
-            delete rooms[socket.room]
+            if (rooms[socket.room].players === {}) {
+              delete rooms[socket.room]
+            }
           }
         }
-      }
+      })
     })
   })
 }
