@@ -23,6 +23,7 @@ function addOtherPlayers(self, playerInfo) {
   // self.physics.add.collider(self.user, self.otherPlayers)
   // self.otherPlayers.setCollideWorldBounds(true)
 }
+
 export default class FgScene extends Phaser.Scene {
   constructor() {
     super('FgScene')
@@ -32,19 +33,29 @@ export default class FgScene extends Phaser.Scene {
     let self = this
     this.otherPlayers = this.physics.add.group()
 
-    socket.on('currentPlayers', function(players) {
+    socket.on('currentPlayers', function(players, roomName) {
       Object.keys(players).forEach(function(id) {
+        console.log('rooooomName: ', roomName)
         console.log('these are the players: ', players)
-        if (players[id].playerId === self.socket.id) {
+        if (
+          players[id].playerId === self.socket.id &&
+          players[id].room === roomName
+        ) {
           addPlayer(self, players[id])
-        } else {
+        }
+        if (
+          players[id].playerId !== self.socket.id &&
+          players[id].room === roomName
+        ) {
           addOtherPlayers(self, players[id])
         }
       })
     })
 
-    socket.on('newPlayer', function(playerInfo) {
-      addOtherPlayers(self, playerInfo)
+    socket.on('newPlayer', function(playerInfo, roomName) {
+      if (playerInfo.room === roomName) {
+        addOtherPlayers(self, playerInfo)
+      }
     })
 
     socket.on('disconnect', function(playerId) {
@@ -62,9 +73,17 @@ export default class FgScene extends Phaser.Scene {
         }
       })
     })
+
+    socket.on('ballMoved', function(ballInfo) {
+      self.ball.setPosition(ballInfo.x, ballInfo.y)
+    })
   }
+
   createPlayers() {
     socket.emit('getPlayers')
+    this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
+    this.ball.setBounce(0.6)
+    this.ball.setCollideWorldBounds(true)
   }
 
   preload() {
@@ -112,8 +131,6 @@ export default class FgScene extends Phaser.Scene {
 
     this.cursors = this.input.keyboard.createCursorKeys()
     //this.createAnimations()
-    this.ball.setBounce(0.6)
-    this.ball.setCollideWorldBounds(true)
 
     //JOYSTICK CREATE
     this.joyStick = this.plugins
@@ -210,10 +227,28 @@ export default class FgScene extends Phaser.Scene {
       ) {
         this.socket.emit('playerMovement', {x: this.user.x, y: this.user.y})
       }
+
       // save old position data
       this.user.oldPosition = {
         x: this.user.x,
         y: this.user.y
+      }
+    }
+
+    if (this.ball) {
+      let x = this.ball.x
+      let y = this.ball.y
+
+      if (
+        this.ball.oldPosition &&
+        (x !== this.ball.oldPosition.x || y !== this.ball.oldPosition.y)
+      ) {
+        this.socket.emit('ballMovement', {x: this.ball.x, y: this.ball.y})
+      }
+
+      this.ball.oldPosition = {
+        x: this.ball.x,
+        y: this.ball.y
       }
     }
   }
