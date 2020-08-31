@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
-import Player from '../entity/player.js'
-import Ball from '../entity/ball.js'
+import Player from '../entity/Player.js'
+import Ball from '../entity/Ball.js'
+import Goal from '../entity/Goal.js'
 import socket from '../../sockets'
 
 function addPlayer(self, playerInfo) {
@@ -64,15 +65,18 @@ export default class FgScene extends Phaser.Scene {
   }
   createPlayers() {
     socket.emit('getPlayers')
-    this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
   }
 
   preload() {
     this.socket = socket
+    this.data.values.redScore = 0
+    this.data.values.blueScore = 0
+
     // Preload Sprites
     // << LOAD SPRITES HERE >>
     // this.load.image("ground", "./assets/ground.png");
     this.load.image('ball', '/SoccerBall.png')
+    this.load.image('goal', '/soccer-goal.png')
 
     this.load.image('user', '/red.png', {
       frameWidth: 340,
@@ -93,11 +97,19 @@ export default class FgScene extends Phaser.Scene {
 
   create() {
     this.initializeSockets()
-    // this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
+    this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
+    this.goalRight = new Goal(this, 780, 325, 'goal').setScale(0.8)
+    this.goal2 = new Goal(this, 20, 325, 'goal').setScale(0.5)
     this.otherPlayers = this.physics.add.group()
     this.player = this.createPlayers()
-    console.log('ZDA LOG MON', this.otherPlayers)
     // this.physics.add.collider(this.otherPlayers, this.ball)
+    this.physics.add.overlap(this.ball, this.goalRight, function(
+      ball,
+      goalRight
+    ) {
+      ball.destroy()
+    })
+
     this.cursors = this.input.keyboard.createCursorKeys()
     //this.createAnimations()
     this.ball.setBounce(0.6)
@@ -121,7 +133,19 @@ export default class FgScene extends Phaser.Scene {
     this.text = this.add.text(0, 0)
     this.dumpJoyStickState()
     // this.otherPlayers.setCollideWorldBounds(true)
+
+    //SCORE BOARD?
+    this.add.text(200, 4, `Red: ${this.data.values.redScore}`, {
+      fontSize: '32px',
+      fill: '#f90202'
+    })
+    this.add.text(400, 4, `Blue: ${this.data.values.blueScore}`, {
+      fontSize: '32px',
+      fill: '#2f02f9'
+    })
   }
+
+  resetBallFunc(ball, goalRight) {}
 
   dumpJoyStickState() {
     var cursorKeys = this.joyStick.createCursorKeys()
@@ -134,7 +158,7 @@ export default class FgScene extends Phaser.Scene {
     s += '\n'
     s += 'Force: ' + Math.floor(this.joyStick.force * 100) / 100 + '\n'
     s += 'Angle: ' + Math.floor(this.joyStick.angle * 100) / 100 + '\n'
-    this.text.setText(s)
+    // this.text.setText(s)
   }
 
   updateJoystick() {
