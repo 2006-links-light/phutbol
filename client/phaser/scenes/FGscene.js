@@ -73,9 +73,12 @@ export default class FgScene extends Phaser.Scene {
       })
     })
   }
+
   createPlayers() {
     socket.emit('getPlayers')
     this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
+    this.ball.setBounce(0.6)
+    this.ball.setCollideWorldBounds(true)
   }
 
   preload() {
@@ -110,8 +113,6 @@ export default class FgScene extends Phaser.Scene {
     // this.physics.add.collider(this.otherPlayers, this.ball)
     this.cursors = this.input.keyboard.createCursorKeys()
     //this.createAnimations()
-    this.ball.setBounce(0.6)
-    this.ball.setCollideWorldBounds(true)
 
     //JOYSTICK CREATE
     this.joyStick = this.plugins
