@@ -22,6 +22,7 @@ function addOtherPlayers(self, playerInfo) {
   // self.physics.add.collider(self.user, self.otherPlayers)
   // self.otherPlayers.setCollideWorldBounds(true)
 }
+
 export default class FgScene extends Phaser.Scene {
   constructor() {
     super('FgScene')
@@ -31,19 +32,29 @@ export default class FgScene extends Phaser.Scene {
     let self = this
     this.otherPlayers = this.physics.add.group()
 
-    socket.on('currentPlayers', function(players) {
+    socket.on('currentPlayers', function(players, roomName) {
       Object.keys(players).forEach(function(id) {
+        console.log('rooooomName: ', roomName)
         console.log('these are the players: ', players)
-        if (players[id].playerId === self.socket.id) {
+        if (
+          players[id].playerId === self.socket.id &&
+          players[id].room === roomName
+        ) {
           addPlayer(self, players[id])
-        } else {
+        }
+        if (
+          players[id].playerId !== self.socket.id &&
+          players[id].room === roomName
+        ) {
           addOtherPlayers(self, players[id])
         }
       })
     })
 
-    socket.on('newPlayer', function(playerInfo) {
-      addOtherPlayers(self, playerInfo)
+    socket.on('newPlayer', function(playerInfo, roomName) {
+      if (playerInfo.room === roomName) {
+        addOtherPlayers(self, playerInfo)
+      }
     })
 
     socket.on('disconnect', function(playerId) {
@@ -96,7 +107,6 @@ export default class FgScene extends Phaser.Scene {
     // this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
     this.otherPlayers = this.physics.add.group()
     this.player = this.createPlayers()
-    console.log('ZDA LOG MON', this.otherPlayers)
     // this.physics.add.collider(this.otherPlayers, this.ball)
     this.cursors = this.input.keyboard.createCursorKeys()
     //this.createAnimations()

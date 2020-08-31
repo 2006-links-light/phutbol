@@ -1,13 +1,17 @@
 import 'phaser'
 import React from '../config/jsx-dom-shim'
+import socket from '../../sockets'
 
 export default class LobbyScene extends Phaser.Scene {
   constructor() {
     super('LobbyScene')
     this.names = ['Bobby', 'Jake']
+    this.name = ''
   }
+
   init(data) {
     this.names.push(data.name)
+    this.name = data.name
     this.room = data.room
   }
 
@@ -39,6 +43,7 @@ export default class LobbyScene extends Phaser.Scene {
     element.addListener('click').on('click', event => {
       //  event.preventDefault()
       if (event.target.name === 'startButton') {
+        socket.emit('join room', this.room, this.name)
         this.scene.start('MainScene', {
           room: this.room,
           names: this.names
