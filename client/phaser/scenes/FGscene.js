@@ -72,6 +72,10 @@ export default class FgScene extends Phaser.Scene {
         }
       })
     })
+
+    socket.on('ballMoved', function(ballInfo) {
+      self.ball.setPosition(ballInfo.x, ballInfo.y)
+    })
   }
 
   createPlayers() {
@@ -197,10 +201,28 @@ export default class FgScene extends Phaser.Scene {
       ) {
         this.socket.emit('playerMovement', {x: this.user.x, y: this.user.y})
       }
+
       // save old position data
       this.user.oldPosition = {
         x: this.user.x,
         y: this.user.y
+      }
+    }
+
+    if (this.ball) {
+      let x = this.ball.x
+      let y = this.ball.y
+
+      if (
+        this.ball.oldPosition &&
+        (x !== this.ball.oldPosition.x || y !== this.ball.oldPosition.y)
+      ) {
+        this.socket.emit('ballMovement', {x: this.ball.x, y: this.ball.y})
+      }
+
+      this.ball.oldPosition = {
+        x: this.ball.x,
+        y: this.ball.y
       }
     }
   }

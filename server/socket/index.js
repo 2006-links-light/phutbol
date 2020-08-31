@@ -14,7 +14,8 @@ module.exports = io => {
       // If roomName is not in our room storage, add the roomName
       if (!rooms.hasOwnProperty(roomName)) {
         rooms[roomName] = {
-          players: {}
+          players: {},
+          ball: {}
         }
         //indicate you are the host
         //socket.host = true
@@ -64,6 +65,14 @@ module.exports = io => {
         rooms[roomName].players[socket.id].y = movementData.y
         // emit a message to all players about the player that moved
         socket.broadcast.emit('playerMoved', rooms[roomName].players[socket.id])
+      })
+
+      // when the ball moves, update the ball data
+      socket.on('ballMovement', function(movementData) {
+        rooms[roomName].ball.x = movementData.x
+        rooms[roomName].ball.y = movementData.y
+        // emit a message to all players about the player that moved
+        socket.broadcast.emit('ballMoved', rooms[roomName].ball)
       })
     })
 
