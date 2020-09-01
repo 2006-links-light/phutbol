@@ -30,6 +30,8 @@ export default class FgScene extends Phaser.Scene {
   }
 
   initializeSockets() {
+    const redScore = (this.data.values.redScore = 0)
+    const blueScore = (this.data.values.blueScore = 0)
     let self = this
     this.otherPlayers = this.physics.add.group()
 
@@ -115,19 +117,29 @@ export default class FgScene extends Phaser.Scene {
   }
 
   create() {
+    var redScoreText
     this.initializeSockets()
     // this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
     this.goalRight = new Goal(this, 780, 325, 'goal').setScale(0.8)
-    this.goal2 = new Goal(this, 20, 325, 'goal').setScale(0.5)
+    this.goalLeft = new Goal(this, 20, 325, 'goal').setScale(0.8)
     this.otherPlayers = this.physics.add.group()
     this.player = this.createPlayers()
     // this.physics.add.collider(this.otherPlayers, this.ball)
-    this.physics.add.overlap(this.ball, this.goalRight, function(
-      ball,
-      goalRight
-    ) {
-      ball.destroy()
-    })
+    this.physics.add.overlap(
+      this.ball,
+      this.goalRight,
+      this.redTeamScored,
+      null,
+      this
+    )
+
+    this.physics.add.overlap(
+      this.ball,
+      this.goalLeft,
+      this.blueTeamScored,
+      null,
+      this
+    )
 
     this.cursors = this.input.keyboard.createCursorKeys()
     //this.createAnimations()
@@ -152,17 +164,36 @@ export default class FgScene extends Phaser.Scene {
     // this.otherPlayers.setCollideWorldBounds(true)
 
     //SCORE BOARD?
-    this.add.text(200, 4, `Red: ${this.data.values.redScore}`, {
+    redScoreText = this.add.text(200, 4, `Red: ${this.data.values.redScore}`, {
       fontSize: '32px',
       fill: '#f90202'
     })
-    this.add.text(400, 4, `Blue: ${this.data.values.blueScore}`, {
-      fontSize: '32px',
-      fill: '#2f02f9'
-    })
-  }
 
-  resetBallFunc(ball, goalRight) {}
+    let blueScore = this.add.text(
+      400,
+      4,
+      `Blue: ${this.data.values.blueScore}`,
+      {
+        fontSize: '32px',
+        fill: '#2f02f9'
+      }
+    )
+  }
+  redTeamScored(ball, goalRight) {
+    this.ball.setPosition(400, 325)
+    this.ball.setVelocityX(0)
+    this.ball.setVelocityY(0)
+    this.data.values.redScore++
+    console.log('this', this)
+    console.log('this.data.values', this.data.values)
+  }
+  blueTeamScored(ball, goalLeft) {
+    this.ball.setPosition(400, 325)
+    this.ball.setVelocityX(0)
+    this.ball.setVelocityY(0)
+    this.data.values.blueScore++
+    console.log('this.data.values', this.data.values)
+  }
 
   dumpJoyStickState() {
     var cursorKeys = this.joyStick.createCursorKeys()
