@@ -30,8 +30,6 @@ export default class FgScene extends Phaser.Scene {
   }
 
   initializeSockets() {
-    const redScore = (this.data.values.redScore = 0)
-    const blueScore = (this.data.values.blueScore = 0)
     let self = this
     this.otherPlayers = this.physics.add.group()
 
@@ -90,8 +88,6 @@ export default class FgScene extends Phaser.Scene {
 
   preload() {
     this.socket = socket
-    this.data.values.redScore = 0
-    this.data.values.blueScore = 0
 
     // Preload Sprites
     // << LOAD SPRITES HERE >>
@@ -117,8 +113,9 @@ export default class FgScene extends Phaser.Scene {
   }
 
   create() {
-    var redScoreText
     this.initializeSockets()
+    this.data.values.redScore = 0
+    this.data.values.blueScore = 0
     // this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
     this.goalRight = new Goal(this, 780, 325, 'goal').setScale(0.8)
     this.goalLeft = new Goal(this, 20, 325, 'goal').setScale(0.8)
@@ -161,15 +158,21 @@ export default class FgScene extends Phaser.Scene {
 
     this.text = this.add.text(0, 0)
     this.dumpJoyStickState()
+    console.log(this.joyStick.touchCursor)
     // this.otherPlayers.setCollideWorldBounds(true)
 
     //SCORE BOARD?
-    redScoreText = this.add.text(200, 4, `Red: ${this.data.values.redScore}`, {
-      fontSize: '32px',
-      fill: '#f90202'
-    })
+    this.redScoreLabel = this.add.text(
+      200,
+      4,
+      `Red: ${this.data.values.redScore}`,
+      {
+        fontSize: '32px',
+        fill: '#f90202'
+      }
+    )
 
-    let blueScore = this.add.text(
+    this.blueScoreLabel = this.add.text(
       400,
       4,
       `Blue: ${this.data.values.blueScore}`,
@@ -184,15 +187,14 @@ export default class FgScene extends Phaser.Scene {
     this.ball.setVelocityX(0)
     this.ball.setVelocityY(0)
     this.data.values.redScore++
-    console.log('this', this)
-    console.log('this.data.values', this.data.values)
+    this.redScoreLabel.text = 'RED: ' + this.data.values.redScore
   }
   blueTeamScored(ball, goalLeft) {
     this.ball.setPosition(400, 325)
     this.ball.setVelocityX(0)
     this.ball.setVelocityY(0)
     this.data.values.blueScore++
-    console.log('this.data.values', this.data.values)
+    this.blueScoreLabel.text = 'Blue: ' + this.data.values.blueScore
   }
 
   dumpJoyStickState() {
@@ -214,25 +216,25 @@ export default class FgScene extends Phaser.Scene {
       this.joyStick.touchCursor.cursorKeys.left.isDown ||
       this.cursors.left.isDown
     ) {
-      this.user.setVelocityX(-160)
+      this.user.setVelocityX(-250)
       // this.player.anims.play("left", true);
     } else if (
       this.joyStick.touchCursor.cursorKeys.right.isDown ||
       this.cursors.right.isDown
     ) {
-      this.user.setVelocityX(160)
+      this.user.setVelocityX(250)
       // this.user.anims.play("right", true);
     } else if (
       this.joyStick.touchCursor.cursorKeys.up.isDown ||
       this.cursors.up.isDown
     ) {
-      this.user.setVelocityY(-160)
+      this.user.setVelocityY(-250)
       // this.user.anims.play("right", true);
     } else if (
       this.joyStick.touchCursor.cursorKeys.down.isDown ||
       this.cursors.down.isDown
     ) {
-      this.user.setVelocityY(160)
+      this.user.setVelocityY(250)
       // this.user.anims.play("left", true);
     } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
       // this.user.setVelocityX(0)
