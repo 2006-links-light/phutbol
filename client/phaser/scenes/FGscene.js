@@ -116,7 +116,7 @@ export default class FgScene extends Phaser.Scene {
 
   create() {
     this.initializeSockets()
-    this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
+    // this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
     this.goalRight = new Goal(this, 780, 325, 'goal').setScale(0.8)
     this.goal2 = new Goal(this, 20, 325, 'goal').setScale(0.5)
     this.otherPlayers = this.physics.add.group()
