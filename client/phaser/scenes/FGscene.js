@@ -4,8 +4,11 @@ import Ball from '../entity/Ball.js'
 import Goal from '../entity/Goal.js'
 import socket from '../../sockets'
 
+const RED_DUDE_KEY = 'dude-red'
+const BLUE_DUDE_KEY = 'dude-blue'
+
 function addPlayer(self, playerInfo) {
-  self.user = new Player(self, 50, 325, 'user').setScale(0.25)
+  self.user = new Player(self, 50, 325, 'user').setScale(1)
   self.user.setDrag(100)
   self.user.setAngularDrag(100)
   self.user.setCollideWorldBounds(true)
@@ -15,7 +18,7 @@ function addPlayer(self, playerInfo) {
 }
 
 function addOtherPlayers(self, playerInfo) {
-  const otherPlayer = new Player(self, 50, 325, 'opponent').setScale(0.25)
+  const otherPlayer = new Player(self, 50, 325, 'opponent').setScale(1)
 
   otherPlayer.playerId = playerInfo.playerId
   self.otherPlayers.add(otherPlayer)
@@ -95,14 +98,19 @@ export default class FgScene extends Phaser.Scene {
     this.load.image('ball', '/SoccerBall.png')
     this.load.image('goal', '/soccer-goal.png')
 
-    this.load.image('user', '/red.png', {
-      frameWidth: 340,
-      frameHeight: 460
+    this.load.spritesheet('user', '/dude-red.png', {
+      frameWidth: 34,
+      frameHeight: 46
     })
-    this.load.image('opponent', '/blue.png', {
-      frameWidth: 340,
-      frameHeight: 460
+    this.load.spritesheet('opponent', '/dude-blue.png', {
+      frameWidth: 34,
+      frameHeight: 46
     })
+
+    // this.load.image('opponent', '/blue.png', {
+    //   frameWidth: 340,
+    //   frameHeight: 460,
+    // })
 
     // JOYSTICK
     var url
@@ -113,6 +121,28 @@ export default class FgScene extends Phaser.Scene {
   }
 
   create() {
+    // this.player.anims.animationManager.anims.entries.add({
+    //   key: 'left',
+    //   frames: this.anims.generateFrameNumbers('user', {
+    //     start: 0,
+    //     end: 3,
+    //   }),
+    //   frameRate: 10,
+    //   repeat: -1,
+    // })
+
+    // this.player.anims.add({
+    //   key: 'turn',
+    //   frames: [{key: 'user', frame: 4}],
+    //   frameRate: 20,
+    // })
+
+    // this.player.anims.add({
+    //   key: 'right',
+    //   frames: this.anims.generateFrameNumbers('user', {start: 5, end: 8}),
+    //   frameRate: 10,
+    //   repeat: -1,
+    // })
     this.initializeSockets()
     this.data.values.redScore = 0
     this.data.values.blueScore = 0
@@ -158,7 +188,6 @@ export default class FgScene extends Phaser.Scene {
 
     this.text = this.add.text(0, 0)
     this.dumpJoyStickState()
-    console.log(this.joyStick.touchCursor)
     // this.otherPlayers.setCollideWorldBounds(true)
 
     //SCORE BOARD?
