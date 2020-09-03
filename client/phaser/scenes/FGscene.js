@@ -9,11 +9,18 @@ const BLUE_DUDE_KEY = 'dude-blue'
 
 function addPlayer(self, playerInfo) {
   self.user = new Player(self, 50, 325, 'user').setScale(1)
-  self.user.setDrag(100)
-  self.user.setAngularDrag(100)
+  self.user.setDrag(500)
+  self.user.setAngularDrag(500)
   self.user.setCollideWorldBounds(true)
-  self.physics.add.collider(self.user, self.ball)
-  self.physics.add.collider(self.user, self.otherPlayers)
+  self.physics.add.collider(self.user, self.ball, () => {
+    socket.emit(
+      'ballCollision',
+      self.ball.body.velocity,
+      self.ball.x,
+      self.ball.y
+    )
+  })
+  // self.physics.add.collider(self.user, self.otherPlayers)
   self.user.playerId = playerInfo.playerId
 }
 
@@ -22,6 +29,10 @@ function addOtherPlayers(self, playerInfo) {
 
   otherPlayer.playerId = playerInfo.playerId
   self.otherPlayers.add(otherPlayer)
+  self.physics.add.collider(self.otherPlayers, self.ball)
+  self.physics.add.collider(self.otherPlayers, self.ball, () => {
+    socket.emit('ballCollision', self.ball.body.velocity)
+  })
   // self.physics.add.collider(self.otherPlayers, self.user)
   // self.physics.add.collider(self.user, self.otherPlayers)
   // self.otherPlayers.setCollideWorldBounds(true)
@@ -77,8 +88,9 @@ export default class FgScene extends Phaser.Scene {
       })
     })
 
-    socket.on('ballMoved', function(ballInfo) {
-      self.ball.setPosition(ballInfo.x, ballInfo.y)
+    socket.on('velChange', newVel => {
+      console.log('change in velocity?', this.ball)
+      if (this.ball) this.ball.setVelocity(newVel.x, newVel.y)
     })
   }
 
@@ -297,21 +309,29 @@ export default class FgScene extends Phaser.Scene {
       }
     }
 
+    // if (this.ball) {
+    //   let x = this.ball.x
+    //   let y = this.ball.y
+
+    //   if (
+    //     this.ball.oldPosition &&
+    //     (x !== this.ball.oldPosition.x || y !== this.ball.oldPosition.y)
+    //   ) {
+    //     this.socket.emit('ballMovement', this.ball)
+    //   }
+
+    //   this.ball.oldPosition = {
+    //     x: this.ball.x,
+    //     y: this.ball.y,
+    //   }
+    // }
+
     if (this.ball) {
-      let x = this.ball.x
-      let y = this.ball.y
-
-      if (
-        this.ball.oldPosition &&
-        (x !== this.ball.oldPosition.x || y !== this.ball.oldPosition.y)
-      ) {
-        this.socket.emit('ballMovement', {x: this.ball.x, y: this.ball.y})
-      }
-
-      this.ball.oldPosition = {
-        x: this.ball.x,
-        y: this.ball.y
-      }
+      socket.on('position', (x, y) => {
+        if (this.ball.x !== x || this.ball.y !== y) {
+          this.ball.setPosition(x, y)
+        }
+      })
     }
   }
 }
