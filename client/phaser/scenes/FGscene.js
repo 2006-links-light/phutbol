@@ -13,7 +13,12 @@ function addPlayer(self, playerInfo) {
   self.user.setAngularDrag(500)
   self.user.setCollideWorldBounds(true)
   self.physics.add.collider(self.user, self.ball, () => {
-    socket.emit('ballCollision', self.ball.body.velocity)
+    socket.emit(
+      'ballCollision',
+      self.ball.body.velocity,
+      self.ball.x,
+      self.ball.y
+    )
   })
   // self.physics.add.collider(self.user, self.otherPlayers)
   self.user.playerId = playerInfo.playerId
@@ -25,6 +30,9 @@ function addOtherPlayers(self, playerInfo) {
   otherPlayer.playerId = playerInfo.playerId
   self.otherPlayers.add(otherPlayer)
   self.physics.add.collider(self.otherPlayers, self.ball)
+  self.physics.add.collider(self.otherPlayers, self.ball, () => {
+    socket.emit('ballCollision', self.ball.body.velocity)
+  })
   // self.physics.add.collider(self.otherPlayers, self.user)
   // self.physics.add.collider(self.user, self.otherPlayers)
   // self.otherPlayers.setCollideWorldBounds(true)
@@ -78,17 +86,6 @@ export default class FgScene extends Phaser.Scene {
           otherPlayer.setPosition(playerInfo.x, playerInfo.y)
         }
       })
-    })
-
-    // socket.on('ballMoved', function (newBall) {
-    //   self.ball = newBall
-    // })
-    socket.on('setBall', newBall => {
-      // console.log('old', self.ball.x)
-      console.log(this.ball)
-
-      this.ball.setPosition(newBall.x, newBall.y)
-      // console.log('new', self.ball.x)
     })
 
     socket.on('velChange', newVel => {
@@ -330,25 +327,11 @@ export default class FgScene extends Phaser.Scene {
     // }
 
     if (this.ball) {
-      let x = this.ball.x
-      let y = this.ball.y
-
-      if (
-        this.ball.oldPosition &&
-        (Math.abs(x - this.ball.oldPosition.x) > 0.001 ||
-          Math.abs(y - this.ball.oldPosition.y) > 0.001)
-      ) {
-        // console.log('ball update')
-        // console.log(Math.abs(x - this.ball.oldPosition.x))
-        // this.socket.emit('ballUpdate', this.ball)
-      }
-
-      this.ball.oldPosition = {
-        x: this.ball.x,
-        y: this.ball.y
-      }
-
-      // save old position data
+      socket.on('position', (x, y) => {
+        if (this.ball.x !== x || this.ball.y !== y) {
+          this.ball.setPosition(x, y)
+        }
+      })
     }
   }
 }

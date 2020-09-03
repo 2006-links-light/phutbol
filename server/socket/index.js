@@ -74,20 +74,9 @@ module.exports = io => {
       //   // emit a message to all players about the player that moved
       //   socket.broadcast.emit('ballMoved', rooms[roomName].ball)
       // })
-      socket.on('ballCollision', newVel => {
+      socket.on('ballCollision', (newVel, x, y) => {
         socket.broadcast.emit('velChange', newVel)
-      })
-
-      socket.on('getBall', () => {
-        socket.emit('ballXY', rooms[roomName].ball)
-      })
-      socket.on('ballUpdate', newBall => {
-        if (!socket.host) {
-          return
-        }
-        rooms[roomName].ball = newBall
-        // console.log(rooms[roomName])
-        socket.broadcast.emit('setBall', rooms[roomName].ball)
+        socket.broadcast.emit('position', x, y)
       })
 
       socket.on('disconnect', () => {
