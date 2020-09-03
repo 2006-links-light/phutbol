@@ -18,7 +18,7 @@ module.exports = io => {
           ball: {}
         }
         //indicate you are the host
-        //socket.host = true
+        socket.host = true
         socket.emit('you are the host')
       }
 
@@ -68,11 +68,26 @@ module.exports = io => {
       })
 
       // when the ball moves, update the ball data
-      socket.on('ballMovement', function(movementData) {
-        rooms[roomName].ball.x = movementData.x
-        rooms[roomName].ball.y = movementData.y
-        // emit a message to all players about the player that moved
-        socket.broadcast.emit('ballMoved', rooms[roomName].ball)
+      // socket.on('ballMovement', function (newBall) {
+      //   rooms[roomName].ball = newBall
+      //   console.log('.baaaaalllll', newBall)
+      //   // emit a message to all players about the player that moved
+      //   socket.broadcast.emit('ballMoved', rooms[roomName].ball)
+      // })
+      socket.on('ballCollision', newVel => {
+        socket.broadcast.emit('velChange', newVel)
+      })
+
+      socket.on('getBall', () => {
+        socket.emit('ballXY', rooms[roomName].ball)
+      })
+      socket.on('ballUpdate', newBall => {
+        if (!socket.host) {
+          return
+        }
+        rooms[roomName].ball = newBall
+        // console.log(rooms[roomName])
+        socket.broadcast.emit('setBall', rooms[roomName].ball)
       })
 
       socket.on('disconnect', () => {
