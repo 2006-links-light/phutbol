@@ -7,8 +7,14 @@ export default class StartScene extends Phaser.Scene {
     super('StartScene')
   }
 
+  preload() {
+    this.load.bitmapFont('pixelFont', '/font/font.png', '/font/font.fnt')
+  }
+
   create() {
     this.scene.launch('BgScene')
+    this.scoreLabel = this.add.bitmapText(250, 70, 'pixelFont', 'PHUTBOL', 50)
+
     var element = this.add.dom(
       400,
       300,
