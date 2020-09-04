@@ -111,7 +111,7 @@ export default class FgScene extends Phaser.Scene {
     this.load.image('goal', '/soccer-goal.png')
 
     this.load.spritesheet('user', '/dude-red.png', {
-      frameWidth: 34,
+      frameWidth: 32,
       frameHeight: 46
     })
     this.load.spritesheet('opponent', '/dude-blue.png', {
@@ -133,28 +133,6 @@ export default class FgScene extends Phaser.Scene {
   }
 
   create() {
-    // this.player.anims.animationManager.anims.entries.add({
-    //   key: 'left',
-    //   frames: this.anims.generateFrameNumbers('user', {
-    //     start: 0,
-    //     end: 3,
-    //   }),
-    //   frameRate: 10,
-    //   repeat: -1,
-    // })
-
-    // this.player.anims.add({
-    //   key: 'turn',
-    //   frames: [{key: 'user', frame: 4}],
-    //   frameRate: 20,
-    // })
-
-    // this.player.anims.add({
-    //   key: 'right',
-    //   frames: this.anims.generateFrameNumbers('user', {start: 5, end: 8}),
-    //   frameRate: 10,
-    //   repeat: -1,
-    // })
     this.initializeSockets()
     this.data.values.redScore = 0
     this.data.values.blueScore = 0
@@ -222,6 +200,29 @@ export default class FgScene extends Phaser.Scene {
         fill: '#2f02f9'
       }
     )
+    console.log('thisthisthis', this)
+    this.anims.create({
+      key: 'left',
+      frames: this.anims.generateFrameNumbers('user', {
+        start: 0,
+        end: 3
+      }),
+      frameRate: 10,
+      repeat: -1
+    })
+
+    this.anims.create({
+      key: 'turn',
+      frames: [{key: 'user', frame: 4}],
+      frameRate: 20
+    })
+
+    this.anims.create({
+      key: 'right',
+      frames: this.anims.generateFrameNumbers('user', {start: 5, end: 7}),
+      frameRate: 10,
+      repeat: -1
+    })
   }
   redTeamScored(ball, goalRight) {
     this.ball.setPosition(400, 325)
@@ -258,28 +259,28 @@ export default class FgScene extends Phaser.Scene {
       this.cursors.left.isDown
     ) {
       this.user.setVelocityX(-250)
-      // this.player.anims.play("left", true);
+      this.user.anims.play('left', true)
     } else if (
       this.joyStick.touchCursor.cursorKeys.right.isDown ||
       this.cursors.right.isDown
     ) {
       this.user.setVelocityX(250)
-      // this.user.anims.play("right", true);
+      this.user.anims.play('right', true)
     } else if (
       this.joyStick.touchCursor.cursorKeys.up.isDown ||
       this.cursors.up.isDown
     ) {
       this.user.setVelocityY(-250)
-      // this.user.anims.play("right", true);
+      this.user.anims.play('right', true)
     } else if (
       this.joyStick.touchCursor.cursorKeys.down.isDown ||
       this.cursors.down.isDown
     ) {
       this.user.setVelocityY(250)
-      // this.user.anims.play("left", true);
+      this.user.anims.play('left', true)
     } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
       // this.user.setVelocityX(0)
-      // this.user.anims.play("turn");
+      this.user.anims.play('turn')
     }
   }
 
