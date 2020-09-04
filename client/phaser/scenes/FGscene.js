@@ -254,33 +254,35 @@ export default class FgScene extends Phaser.Scene {
   }
 
   updateJoystick() {
-    if (
-      this.joyStick.touchCursor.cursorKeys.left.isDown ||
-      this.cursors.left.isDown
-    ) {
-      this.user.setVelocityX(-250)
-      this.user.anims.play('left', true)
-    } else if (
-      this.joyStick.touchCursor.cursorKeys.right.isDown ||
-      this.cursors.right.isDown
-    ) {
-      this.user.setVelocityX(250)
-      this.user.anims.play('right', true)
-    } else if (
-      this.joyStick.touchCursor.cursorKeys.up.isDown ||
-      this.cursors.up.isDown
-    ) {
-      this.user.setVelocityY(-250)
-      this.user.anims.play('right', true)
-    } else if (
-      this.joyStick.touchCursor.cursorKeys.down.isDown ||
-      this.cursors.down.isDown
-    ) {
-      this.user.setVelocityY(250)
-      this.user.anims.play('left', true)
-    } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
-      // this.user.setVelocityX(0)
-      this.user.anims.play('turn')
+    if (this.user) {
+      if (
+        this.joyStick.touchCursor.cursorKeys.left.isDown ||
+        this.cursors.left.isDown
+      ) {
+        this.user.setVelocityX(-250)
+        this.user.anims.play('left', true)
+      } else if (
+        this.joyStick.touchCursor.cursorKeys.right.isDown ||
+        this.cursors.right.isDown
+      ) {
+        this.user.setVelocityX(250)
+        this.user.anims.play('right', true)
+      } else if (
+        this.joyStick.touchCursor.cursorKeys.up.isDown ||
+        this.cursors.up.isDown
+      ) {
+        this.user.setVelocityY(-250)
+        this.user.anims.play('right', true)
+      } else if (
+        this.joyStick.touchCursor.cursorKeys.down.isDown ||
+        this.cursors.down.isDown
+      ) {
+        this.user.setVelocityY(250)
+        this.user.anims.play('left', true)
+      } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
+        // this.user.setVelocityX(0)
+        this.user.anims.play('turn')
+      }
     }
   }
 
