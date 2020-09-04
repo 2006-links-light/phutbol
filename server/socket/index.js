@@ -96,7 +96,7 @@ module.exports = io => {
               .to(socket.room)
               .emit('update', null, null, rooms[socket.room].user)
 
-            if (socket.host) {
+            if (socket.host && rooms[socket.room].user) {
               const newHostIdx = Math.floor(
                 Math.random() * rooms[socket.room].user.length
               )

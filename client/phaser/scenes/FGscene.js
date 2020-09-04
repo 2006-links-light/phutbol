@@ -22,14 +22,14 @@ function addPlayer(self, playerInfo) {
   })
   // self.physics.add.collider(self.user, self.otherPlayers)
   self.user.playerId = playerInfo.playerId
-  self.user.name = self.add.text(50, 325, playerInfo.name)
+  self.user.name = self.add.text(50, 295, playerInfo.name)
 }
 
 function addOtherPlayers(self, playerInfo) {
   const otherPlayer = new Player(self, 50, 325, 'opponent').setScale(1)
 
   otherPlayer.playerId = playerInfo.playerId
-  otherPlayer.name = self.add.text(50, 325, playerInfo.name)
+  otherPlayer.name = self.add.text(50, 295, playerInfo.name)
   self.otherPlayers.add(otherPlayer)
 
   self.physics.add.collider(self.otherPlayers, self.ball)
@@ -88,7 +88,7 @@ export default class FgScene extends Phaser.Scene {
         if (playerInfo.playerId === otherPlayer.playerId) {
           otherPlayer.setPosition(playerInfo.x, playerInfo.y)
           otherPlayer.name.x = playerInfo.x - 30
-          otherPlayer.name.y = playerInfo.y - 10
+          otherPlayer.name.y = playerInfo.y - 30
         }
       })
     })
@@ -299,7 +299,7 @@ export default class FgScene extends Phaser.Scene {
     if (this.user) {
       this.user.update(this.cursors)
       this.user.name.x = this.user.x - 30
-      this.user.name.y = this.user.y - 10
+      this.user.name.y = this.user.y - 30
 
       // emit user movement
       let x = this.user.x
