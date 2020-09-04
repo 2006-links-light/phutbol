@@ -4,7 +4,7 @@ export default {
   type: Phaser.AUTO, // Specify the underlying browser rendering engine (AUTO, CANVAS, WEBGL)
   // AUTO will attempt to use WEBGL, but if not available it'll default to CANVAS
   width: 800, // Game width in pixels
-  height: 600, // Game height in pixels
+  height: 640, // Game height in pixels
   render: {
     pixelArt: true
   },
@@ -44,6 +44,11 @@ export default {
 // }
 function preload() {
   // this.load.image('user', 'public/red.png')
+  this.game.load.bitmapFont(
+    'pixelFont',
+    '../../public/font/font.png',
+    '../../public/font/font.fnt'
+  )
 }
 
 function create() {
