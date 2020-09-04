@@ -1,26 +1,41 @@
 import Phaser from 'phaser'
-import Player from '../entity/player.js'
-import Ball from '../entity/ball.js'
+import Player from '../entity/Player.js'
+import Ball from '../entity/Ball.js'
+import Goal from '../entity/Goal.js'
 import socket from '../../sockets'
 
+const RED_DUDE_KEY = 'dude-red'
+const BLUE_DUDE_KEY = 'dude-blue'
+
 function addPlayer(self, playerInfo) {
-  self.user = new Player(self, 50, 325, 'user').setScale(0.25)
-  self.user.setDrag(100)
-  self.user.setAngularDrag(100)
+  self.user = new Player(self, 50, 325, 'user').setScale(1)
+  self.user.setDrag(500)
+  self.user.setAngularDrag(500)
   self.user.setCollideWorldBounds(true)
-  self.physics.add.collider(self.user, self.ball)
-  self.physics.add.collider(self.user, self.otherPlayers)
+  self.physics.add.collider(self.user, self.ball, () => {
+    socket.emit(
+      'ballCollision',
+      self.ball.body.velocity,
+      self.ball.x,
+      self.ball.y
+    )
+  })
+  // self.physics.add.collider(self.user, self.otherPlayers)
   self.user.playerId = playerInfo.playerId
   self.user.name = self.add.text(50, 325, playerInfo.name)
 }
 
 function addOtherPlayers(self, playerInfo) {
-  const otherPlayer = new Player(self, 50, 325, 'opponent').setScale(0.25)
+  const otherPlayer = new Player(self, 50, 325, 'opponent').setScale(1)
 
   otherPlayer.playerId = playerInfo.playerId
   otherPlayer.name = self.add.text(50, 325, playerInfo.name)
   self.otherPlayers.add(otherPlayer)
 
+  self.physics.add.collider(self.otherPlayers, self.ball)
+  self.physics.add.collider(self.otherPlayers, self.ball, () => {
+    socket.emit('ballCollision', self.ball.body.velocity)
+  })
   // self.physics.add.collider(self.otherPlayers, self.user)
   // self.physics.add.collider(self.user, self.otherPlayers)
   // self.otherPlayers.setCollideWorldBounds(true)
@@ -78,8 +93,9 @@ export default class FgScene extends Phaser.Scene {
       })
     })
 
-    socket.on('ballMoved', function(ballInfo) {
-      self.ball.setPosition(ballInfo.x, ballInfo.y)
+    socket.on('velChange', newVel => {
+      console.log('change in velocity?', this.ball)
+      if (this.ball) this.ball.setVelocity(newVel.x, newVel.y)
     })
   }
 
@@ -92,19 +108,26 @@ export default class FgScene extends Phaser.Scene {
 
   preload() {
     this.socket = socket
+
     // Preload Sprites
     // << LOAD SPRITES HERE >>
     // this.load.image("ground", "./assets/ground.png");
     this.load.image('ball', '/SoccerBall.png')
+    this.load.image('goal', '/soccer-goal.png')
 
-    this.load.image('user', '/red.png', {
-      frameWidth: 340,
-      frameHeight: 460
+    this.load.spritesheet('user', '/dude-red.png', {
+      frameWidth: 32,
+      frameHeight: 46
     })
-    this.load.image('opponent', '/blue.png', {
-      frameWidth: 340,
-      frameHeight: 460
+    this.load.spritesheet('opponent', '/dude-blue.png', {
+      frameWidth: 34,
+      frameHeight: 46
     })
+
+    // this.load.image('opponent', '/blue.png', {
+    //   frameWidth: 340,
+    //   frameHeight: 460,
+    // })
 
     // JOYSTICK
     var url
@@ -116,10 +139,30 @@ export default class FgScene extends Phaser.Scene {
 
   create() {
     this.initializeSockets()
+    this.data.values.redScore = 0
+    this.data.values.blueScore = 0
     // this.ball = new Ball(this, 400, 325, 'ball').setScale(0.25)
+    this.goalRight = new Goal(this, 780, 325, 'goal').setScale(0.8)
+    this.goalLeft = new Goal(this, 20, 325, 'goal').setScale(0.8)
     this.otherPlayers = this.physics.add.group()
     this.player = this.createPlayers()
     // this.physics.add.collider(this.otherPlayers, this.ball)
+    this.physics.add.overlap(
+      this.ball,
+      this.goalRight,
+      this.redTeamScored,
+      null,
+      this
+    )
+
+    this.physics.add.overlap(
+      this.ball,
+      this.goalLeft,
+      this.blueTeamScored,
+      null,
+      this
+    )
+
     this.cursors = this.input.keyboard.createCursorKeys()
     //this.createAnimations()
 
@@ -141,6 +184,64 @@ export default class FgScene extends Phaser.Scene {
     this.text = this.add.text(0, 0)
     this.dumpJoyStickState()
     // this.otherPlayers.setCollideWorldBounds(true)
+
+    //SCORE BOARD?
+    this.redScoreLabel = this.add.text(
+      200,
+      4,
+      `Red: ${this.data.values.redScore}`,
+      {
+        fontSize: '32px',
+        fill: '#f90202'
+      }
+    )
+
+    this.blueScoreLabel = this.add.text(
+      400,
+      4,
+      `Blue: ${this.data.values.blueScore}`,
+      {
+        fontSize: '32px',
+        fill: '#2f02f9'
+      }
+    )
+    console.log('thisthisthis', this)
+    this.anims.create({
+      key: 'left',
+      frames: this.anims.generateFrameNumbers('user', {
+        start: 0,
+        end: 3
+      }),
+      frameRate: 10,
+      repeat: -1
+    })
+
+    this.anims.create({
+      key: 'turn',
+      frames: [{key: 'user', frame: 4}],
+      frameRate: 20
+    })
+
+    this.anims.create({
+      key: 'right',
+      frames: this.anims.generateFrameNumbers('user', {start: 5, end: 7}),
+      frameRate: 10,
+      repeat: -1
+    })
+  }
+  redTeamScored(ball, goalRight) {
+    this.ball.setPosition(400, 325)
+    this.ball.setVelocityX(0)
+    this.ball.setVelocityY(0)
+    this.data.values.redScore++
+    this.redScoreLabel.text = 'RED: ' + this.data.values.redScore
+  }
+  blueTeamScored(ball, goalLeft) {
+    this.ball.setPosition(400, 325)
+    this.ball.setVelocityX(0)
+    this.ball.setVelocityY(0)
+    this.data.values.blueScore++
+    this.blueScoreLabel.text = 'Blue: ' + this.data.values.blueScore
   }
 
   dumpJoyStickState() {
@@ -154,37 +255,39 @@ export default class FgScene extends Phaser.Scene {
     s += '\n'
     s += 'Force: ' + Math.floor(this.joyStick.force * 100) / 100 + '\n'
     s += 'Angle: ' + Math.floor(this.joyStick.angle * 100) / 100 + '\n'
-    this.text.setText(s)
+    // this.text.setText(s)
   }
 
   updateJoystick() {
-    if (
-      this.joyStick.touchCursor.cursorKeys.left.isDown ||
-      this.cursors.left.isDown
-    ) {
-      this.user.setVelocityX(-160)
-      // this.player.anims.play("left", true);
-    } else if (
-      this.joyStick.touchCursor.cursorKeys.right.isDown ||
-      this.cursors.right.isDown
-    ) {
-      this.user.setVelocityX(160)
-      // this.user.anims.play("right", true);
-    } else if (
-      this.joyStick.touchCursor.cursorKeys.up.isDown ||
-      this.cursors.up.isDown
-    ) {
-      this.user.setVelocityY(-160)
-      // this.user.anims.play("right", true);
-    } else if (
-      this.joyStick.touchCursor.cursorKeys.down.isDown ||
-      this.cursors.down.isDown
-    ) {
-      this.user.setVelocityY(160)
-      // this.user.anims.play("left", true);
-    } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
-      // this.user.setVelocityX(0)
-      // this.user.anims.play("turn");
+    if (this.user) {
+      if (
+        this.joyStick.touchCursor.cursorKeys.left.isDown ||
+        this.cursors.left.isDown
+      ) {
+        this.user.setVelocityX(-250)
+        this.user.anims.play('left', true)
+      } else if (
+        this.joyStick.touchCursor.cursorKeys.right.isDown ||
+        this.cursors.right.isDown
+      ) {
+        this.user.setVelocityX(250)
+        this.user.anims.play('right', true)
+      } else if (
+        this.joyStick.touchCursor.cursorKeys.up.isDown ||
+        this.cursors.up.isDown
+      ) {
+        this.user.setVelocityY(-250)
+        this.user.anims.play('right', true)
+      } else if (
+        this.joyStick.touchCursor.cursorKeys.down.isDown ||
+        this.cursors.down.isDown
+      ) {
+        this.user.setVelocityY(250)
+        this.user.anims.play('left', true)
+      } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
+        // this.user.setVelocityX(0)
+        this.user.anims.play('turn')
+      }
     }
   }
 
@@ -216,21 +319,29 @@ export default class FgScene extends Phaser.Scene {
       }
     }
 
+    // if (this.ball) {
+    //   let x = this.ball.x
+    //   let y = this.ball.y
+
+    //   if (
+    //     this.ball.oldPosition &&
+    //     (x !== this.ball.oldPosition.x || y !== this.ball.oldPosition.y)
+    //   ) {
+    //     this.socket.emit('ballMovement', this.ball)
+    //   }
+
+    //   this.ball.oldPosition = {
+    //     x: this.ball.x,
+    //     y: this.ball.y,
+    //   }
+    // }
+
     if (this.ball) {
-      let x = this.ball.x
-      let y = this.ball.y
-
-      if (
-        this.ball.oldPosition &&
-        (x !== this.ball.oldPosition.x || y !== this.ball.oldPosition.y)
-      ) {
-        this.socket.emit('ballMovement', {x: this.ball.x, y: this.ball.y})
-      }
-
-      this.ball.oldPosition = {
-        x: this.ball.x,
-        y: this.ball.y
-      }
+      socket.on('position', (x, y) => {
+        if (this.ball.x !== x || this.ball.y !== y) {
+          this.ball.setPosition(x, y)
+        }
+      })
     }
   }
 }
