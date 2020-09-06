@@ -22,16 +22,13 @@ function addPlayer(self, playerInfo) {
   })
   // self.physics.add.collider(self.user, self.otherPlayers)
   self.user.playerId = playerInfo.playerId
-  self.user.name = self.add.text(50, 295, playerInfo.name)
 }
 
 function addOtherPlayers(self, playerInfo) {
   const otherPlayer = new Player(self, 50, 325, 'opponent').setScale(1)
 
   otherPlayer.playerId = playerInfo.playerId
-  otherPlayer.name = self.add.text(50, 295, playerInfo.name)
   self.otherPlayers.add(otherPlayer)
-
   self.physics.add.collider(self.otherPlayers, self.ball)
   self.physics.add.collider(self.otherPlayers, self.ball, () => {
     socket.emit('ballCollision', self.ball.body.velocity)
@@ -87,8 +84,6 @@ export default class FgScene extends Phaser.Scene {
       self.otherPlayers.getChildren().forEach(function(otherPlayer) {
         if (playerInfo.playerId === otherPlayer.playerId) {
           otherPlayer.setPosition(playerInfo.x, playerInfo.y)
-          otherPlayer.name.x = playerInfo.x - 30
-          otherPlayer.name.y = playerInfo.y - 30
         }
       })
     })
@@ -205,7 +200,6 @@ export default class FgScene extends Phaser.Scene {
         fill: '#2f02f9'
       }
     )
-    console.log('thisthisthis', this)
     this.anims.create({
       key: 'left',
       frames: this.anims.generateFrameNumbers('user', {
@@ -223,6 +217,29 @@ export default class FgScene extends Phaser.Scene {
     })
 
     this.anims.create({
+      key: 'right',
+      frames: this.anims.generateFrameNumbers('user', {start: 5, end: 7}),
+      frameRate: 10,
+      repeat: -1
+    })
+
+    this.otherPlayers.anims.create({
+      key: 'left',
+      frames: this.anims.generateFrameNumbers('user', {
+        start: 0,
+        end: 3
+      }),
+      frameRate: 10,
+      repeat: -1
+    })
+
+    this.otherPlayers.anims.create({
+      key: 'turn',
+      frames: [{key: 'user', frame: 4}],
+      frameRate: 20
+    })
+
+    this.otherPlayers.anims.create({
       key: 'right',
       frames: this.anims.generateFrameNumbers('user', {start: 5, end: 7}),
       frameRate: 10,
@@ -259,35 +276,33 @@ export default class FgScene extends Phaser.Scene {
   }
 
   updateJoystick() {
-    if (this.user) {
-      if (
-        this.joyStick.touchCursor.cursorKeys.left.isDown ||
-        this.cursors.left.isDown
-      ) {
-        this.user.setVelocityX(-250)
-        this.user.anims.play('left', true)
-      } else if (
-        this.joyStick.touchCursor.cursorKeys.right.isDown ||
-        this.cursors.right.isDown
-      ) {
-        this.user.setVelocityX(250)
-        this.user.anims.play('right', true)
-      } else if (
-        this.joyStick.touchCursor.cursorKeys.up.isDown ||
-        this.cursors.up.isDown
-      ) {
-        this.user.setVelocityY(-250)
-        this.user.anims.play('right', true)
-      } else if (
-        this.joyStick.touchCursor.cursorKeys.down.isDown ||
-        this.cursors.down.isDown
-      ) {
-        this.user.setVelocityY(250)
-        this.user.anims.play('left', true)
-      } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
-        // this.user.setVelocityX(0)
-        this.user.anims.play('turn')
-      }
+    if (
+      this.joyStick.touchCursor.cursorKeys.left.isDown ||
+      this.cursors.left.isDown
+    ) {
+      this.user.setVelocityX(-250)
+      this.user.anims.play('left', true)
+    } else if (
+      this.joyStick.touchCursor.cursorKeys.right.isDown ||
+      this.cursors.right.isDown
+    ) {
+      this.user.setVelocityX(250)
+      this.user.anims.play('right', true)
+    } else if (
+      this.joyStick.touchCursor.cursorKeys.up.isDown ||
+      this.cursors.up.isDown
+    ) {
+      this.user.setVelocityY(-250)
+      this.user.anims.play('right', true)
+    } else if (
+      this.joyStick.touchCursor.cursorKeys.down.isDown ||
+      this.cursors.down.isDown
+    ) {
+      this.user.setVelocityY(250)
+      this.user.anims.play('left', true)
+    } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
+      // this.user.setVelocityX(0)
+      this.user.anims.play('turn')
     }
   }
 
@@ -298,8 +313,6 @@ export default class FgScene extends Phaser.Scene {
 
     if (this.user) {
       this.user.update(this.cursors)
-      this.user.name.x = this.user.x - 30
-      this.user.name.y = this.user.y - 30
 
       // emit user movement
       let x = this.user.x
