@@ -3,6 +3,7 @@ import Player from '../entity/Player.js'
 import Ball from '../entity/Ball.js'
 import Goal from '../entity/Goal.js'
 import socket from '../../sockets'
+import Game from '../../phaser/index'
 
 const RED_DUDE_KEY = 'dude-red'
 const BLUE_DUDE_KEY = 'dude-blue'
@@ -200,6 +201,14 @@ export default class FgScene extends Phaser.Scene {
         fill: '#2f02f9'
       }
     )
+    this.gameOverLabel = this.add.text(400, 320, `GAME OVER`, {
+      fontSize: ' 100px',
+      fill: '#000'
+    })
+
+    this.gameOverLabel.setOrigin(0.5)
+    this.gameOverLabel.visible = false
+
     this.anims.create({
       key: 'left',
       frames: this.anims.generateFrameNumbers('user', {
@@ -223,42 +232,62 @@ export default class FgScene extends Phaser.Scene {
       repeat: -1
     })
 
-    this.otherPlayers.anims.create({
-      key: 'left',
-      frames: this.anims.generateFrameNumbers('user', {
-        start: 0,
-        end: 3
-      }),
-      frameRate: 10,
-      repeat: -1
-    })
+    // this.otherPlayers.anims.create({
+    //   key: 'left',
+    //   frames: this.anims.generateFrameNumbers('user', {
+    //     start: 0,
+    //     end: 3,
+    //   }),
+    //   frameRate: 10,
+    //   repeat: -1,
+    // })
 
-    this.otherPlayers.anims.create({
-      key: 'turn',
-      frames: [{key: 'user', frame: 4}],
-      frameRate: 20
-    })
+    // this.otherPlayers.anims.create({
+    //   key: 'turn',
+    //   frames: [{key: 'user', frame: 4}],
+    //   frameRate: 20,
+    // })
 
-    this.otherPlayers.anims.create({
-      key: 'right',
-      frames: this.anims.generateFrameNumbers('user', {start: 5, end: 7}),
-      frameRate: 10,
-      repeat: -1
-    })
+    // this.otherPlayers.anims.create({
+    //   key: 'right',
+    //   frames: this.anims.generateFrameNumbers('user', {start: 5, end: 7}),
+    //   frameRate: 10,
+    //   repeat: -1,
+    // })
   }
   redTeamScored(ball, goalRight) {
     this.ball.setPosition(400, 325)
     this.ball.setVelocityX(0)
     this.ball.setVelocityY(0)
-    this.data.values.redScore++
-    this.redScoreLabel.text = 'RED: ' + this.data.values.redScore
+    if (this.data.values.redScore < 6) {
+      this.data.values.redScore++
+      this.redScoreLabel.text = 'RED: ' + this.data.values.redScore
+    } else {
+      this.data.values.redScore++
+      this.redScoreLabel.text = 'RED: ' + this.data.values.redScore
+      this.gameOver()
+    }
   }
   blueTeamScored(ball, goalLeft) {
     this.ball.setPosition(400, 325)
     this.ball.setVelocityX(0)
     this.ball.setVelocityY(0)
-    this.data.values.blueScore++
-    this.blueScoreLabel.text = 'Blue: ' + this.data.values.blueScore
+    if (this.data.values.blueScore < 6) {
+      this.data.values.blueScore++
+      this.blueScoreLabel.text = 'Blue: ' + this.data.values.blueScore
+    } else {
+      this.data.values.blueScore++
+      this.blueScoreLabel.text = 'Blue: ' + this.data.values.blueScore
+      this.gameOver()
+    }
+  }
+
+  gameOver() {
+    this.physics.pause()
+    this.gameOverLabel.visible = true
+    this.data.values.redScore = 0
+    this.data.values.blueScore = 0
+    this.input.on('pointerdown', () => this.scene.start('StartScene'))
   }
 
   dumpJoyStickState() {
