@@ -3,6 +3,7 @@ import Player from '../entity/Player.js'
 import Ball from '../entity/Ball.js'
 import Goal from '../entity/Goal.js'
 import socket from '../../sockets'
+import Game from '../../phaser/index'
 
 const RED_DUDE_KEY = 'dude-red'
 const BLUE_DUDE_KEY = 'dude-blue'
@@ -23,16 +24,13 @@ function addPlayer(self, playerInfo) {
   })
   // self.physics.add.collider(self.user, self.otherPlayers)
   self.user.playerId = playerInfo.playerId
-  self.user.name = self.add.text(50, 295, playerInfo.name)
 }
 
 function addOtherPlayers(self, playerInfo) {
   const otherPlayer = new Player(self, 50, 325, 'opponent').setScale(1)
 
   otherPlayer.playerId = playerInfo.playerId
-  otherPlayer.name = self.add.text(50, 295, playerInfo.name)
   self.otherPlayers.add(otherPlayer)
-
   self.physics.add.collider(self.otherPlayers, self.ball)
   self.physics.add.collider(self.otherPlayers, self.ball, () => {
     socket.emit('ballCollision', self.ball.body.velocity)
@@ -90,8 +88,6 @@ export default class FgScene extends Phaser.Scene {
       self.otherPlayers.getChildren().forEach(function(otherPlayer) {
         if (playerInfo.playerId === otherPlayer.playerId) {
           otherPlayer.setPosition(playerInfo.x, playerInfo.y)
-          otherPlayer.name.x = playerInfo.x - 30
-          otherPlayer.name.y = playerInfo.y - 30
         }
       })
     })
@@ -208,7 +204,14 @@ export default class FgScene extends Phaser.Scene {
         fill: '#2f02f9'
       }
     )
-    console.log('thisthisthis', this)
+    this.gameOverLabel = this.add.text(400, 320, `GAME OVER`, {
+      fontSize: ' 100px',
+      fill: '#000'
+    })
+
+    this.gameOverLabel.setOrigin(0.5)
+    this.gameOverLabel.visible = false
+
     this.anims.create({
       key: 'left',
       frames: this.anims.generateFrameNumbers('user', {
@@ -231,20 +234,63 @@ export default class FgScene extends Phaser.Scene {
       frameRate: 10,
       repeat: -1
     })
+
+    // this.otherPlayers.anims.create({
+    //   key: 'left',
+    //   frames: this.anims.generateFrameNumbers('user', {
+    //     start: 0,
+    //     end: 3,
+    //   }),
+    //   frameRate: 10,
+    //   repeat: -1,
+    // })
+
+    // this.otherPlayers.anims.create({
+    //   key: 'turn',
+    //   frames: [{key: 'user', frame: 4}],
+    //   frameRate: 20,
+    // })
+
+    // this.otherPlayers.anims.create({
+    //   key: 'right',
+    //   frames: this.anims.generateFrameNumbers('user', {start: 5, end: 7}),
+    //   frameRate: 10,
+    //   repeat: -1,
+    // })
   }
   redTeamScored(ball, goalRight) {
     this.ball.setPosition(400, 325)
     this.ball.setVelocityX(0)
     this.ball.setVelocityY(0)
-    this.data.values.redScore++
-    this.redScoreLabel.text = 'RED: ' + this.data.values.redScore
+    if (this.data.values.redScore < 6) {
+      this.data.values.redScore++
+      this.redScoreLabel.text = 'RED: ' + this.data.values.redScore
+    } else {
+      this.data.values.redScore++
+      this.redScoreLabel.text = 'RED: ' + this.data.values.redScore
+      this.gameOver()
+    }
   }
   blueTeamScored(ball, goalLeft) {
     this.ball.setPosition(400, 325)
     this.ball.setVelocityX(0)
     this.ball.setVelocityY(0)
-    this.data.values.blueScore++
-    this.blueScoreLabel.text = 'Blue: ' + this.data.values.blueScore
+    if (this.data.values.blueScore < 6) {
+      this.data.values.blueScore++
+      this.blueScoreLabel.text = 'Blue: ' + this.data.values.blueScore
+    } else {
+      this.data.values.blueScore++
+      this.blueScoreLabel.text = 'Blue: ' + this.data.values.blueScore
+      this.gameOver()
+    }
+  }
+
+  gameOver() {
+    this.physics.pause()
+    this.gameOverLabel.visible = true
+    this.data.values.redScore = 0
+    this.data.values.blueScore = 0
+    this.input.on('pointerdown', () => this.scene.start('StartScene'))
   }
 
   dumpJoyStickState() {
@@ -262,35 +308,33 @@ export default class FgScene extends Phaser.Scene {
   }
 
   updateJoystick() {
-    if (this.user) {
-      if (
-        this.joyStick.touchCursor.cursorKeys.left.isDown ||
-        this.cursors.left.isDown
-      ) {
-        this.user.setVelocityX(-250)
-        this.user.anims.play('left', true)
-      } else if (
-        this.joyStick.touchCursor.cursorKeys.right.isDown ||
-        this.cursors.right.isDown
-      ) {
-        this.user.setVelocityX(250)
-        this.user.anims.play('right', true)
-      } else if (
-        this.joyStick.touchCursor.cursorKeys.up.isDown ||
-        this.cursors.up.isDown
-      ) {
-        this.user.setVelocityY(-250)
-        this.user.anims.play('right', true)
-      } else if (
-        this.joyStick.touchCursor.cursorKeys.down.isDown ||
-        this.cursors.down.isDown
-      ) {
-        this.user.setVelocityY(250)
-        this.user.anims.play('left', true)
-      } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
-        // this.user.setVelocityX(0)
-        this.user.anims.play('turn')
-      }
+    if (
+      this.joyStick.touchCursor.cursorKeys.left.isDown ||
+      this.cursors.left.isDown
+    ) {
+      this.user.setVelocityX(-250)
+      this.user.anims.play('left', true)
+    } else if (
+      this.joyStick.touchCursor.cursorKeys.right.isDown ||
+      this.cursors.right.isDown
+    ) {
+      this.user.setVelocityX(250)
+      this.user.anims.play('right', true)
+    } else if (
+      this.joyStick.touchCursor.cursorKeys.up.isDown ||
+      this.cursors.up.isDown
+    ) {
+      this.user.setVelocityY(-250)
+      this.user.anims.play('right', true)
+    } else if (
+      this.joyStick.touchCursor.cursorKeys.down.isDown ||
+      this.cursors.down.isDown
+    ) {
+      this.user.setVelocityY(250)
+      this.user.anims.play('left', true)
+    } else if (!this.joyStick.touchCursor.cursorKeys.isDown) {
+      // this.user.setVelocityX(0)
+      this.user.anims.play('turn')
     }
   }
 
@@ -301,8 +345,6 @@ export default class FgScene extends Phaser.Scene {
 
     if (this.user) {
       this.user.update(this.cursors)
-      this.user.name.x = this.user.x - 30
-      this.user.name.y = this.user.y - 30
 
       // emit user movement
       let x = this.user.x
