@@ -8,6 +8,7 @@ const RED_DUDE_KEY = 'dude-red'
 const BLUE_DUDE_KEY = 'dude-blue'
 
 function addPlayer(self, playerInfo) {
+  socket.roomName = playerInfo.room
   self.user = new Player(self, 50, 325, 'user').setScale(1)
   self.user.setDrag(500)
   self.user.setAngularDrag(500)
@@ -70,7 +71,9 @@ export default class FgScene extends Phaser.Scene {
     })
 
     socket.on('newPlayer', function(playerInfo, roomName) {
-      if (playerInfo.room === roomName) {
+      console.log('MY ROOM NAME: ', socket.roomName)
+      console.log('NEW PLAYER ROOM NAME: ', playerInfo.room)
+      if (playerInfo.room === socket.roomName) {
         addOtherPlayers(self, playerInfo)
       }
     })
