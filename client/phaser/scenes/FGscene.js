@@ -32,6 +32,8 @@ function addOtherPlayers(self, playerInfo) {
 
   otherPlayer.playerId = playerInfo.playerId
   self.otherPlayers.add(otherPlayer)
+  otherPlayer.name = self.add.text(50, 295, playerInfo.name)
+
   self.physics.add.collider(self.otherPlayers, self.ball)
   self.physics.add.collider(self.otherPlayers, self.ball, () => {
     socket.emit('ballCollision', self.ball.body.velocity)
