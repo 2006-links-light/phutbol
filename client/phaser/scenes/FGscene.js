@@ -91,6 +91,8 @@ export default class FgScene extends Phaser.Scene {
       self.otherPlayers.getChildren().forEach(function(otherPlayer) {
         if (playerInfo.playerId === otherPlayer.playerId) {
           otherPlayer.setPosition(playerInfo.x, playerInfo.y)
+          otherPlayer.name.x = playerInfo.x - 30
+          otherPlayer.name.y = playerInfo.y - 30
         }
       })
     })
