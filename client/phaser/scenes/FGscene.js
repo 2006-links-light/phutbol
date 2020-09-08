@@ -348,7 +348,8 @@ export default class FgScene extends Phaser.Scene {
 
     if (this.user) {
       this.user.update(this.cursors)
-
+      this.user.name.x = this.user.x - 30
+      this.user.name.y = this.user.y - 30
       // emit user movement
       let x = this.user.x
       let y = this.user.y
