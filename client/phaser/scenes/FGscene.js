@@ -24,6 +24,7 @@ function addPlayer(self, playerInfo) {
   })
   // self.physics.add.collider(self.user, self.otherPlayers)
   self.user.playerId = playerInfo.playerId
+  self.user.name = self.add.text(50, 295, playerInfo.name)
 }
 
 function addOtherPlayers(self, playerInfo) {
