@@ -346,9 +346,14 @@ export default class FgScene extends Phaser.Scene {
   // time: total time elapsed (ms)
   // delta: time elapsed (ms) since last update() call. 16.666 ms @ 60fps
   update() {
-    this.updateJoystick()
+    // if (this.user) {
+    //   this.updateJoystick()
+    // }
+    // this.updateJoystick()
 
     if (this.user) {
+      this.updateJoystick()
+
       this.user.update(this.cursors)
       this.user.name.x = this.user.x - 30
       this.user.name.y = this.user.y - 30
